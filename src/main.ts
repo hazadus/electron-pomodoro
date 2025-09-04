@@ -47,7 +47,7 @@ function createAboutWindow(): void {
 // Функция создания системного трея
 function createTray(): void {
   // Загружаем иконку
-  const iconPath = path.join(__dirname, '..', 'assets', 'icon.png');
+  const iconPath = path.join(__dirname, '..', 'assets', 'icons', 'icon_white.png');
   const icon = nativeImage.createFromPath(iconPath);
   
   // Создаём трей
