@@ -22,7 +22,7 @@ function createAboutWindow(): void {
 
   aboutWindow = new BrowserWindow({
     width: 400,
-    height: 300,
+    height: 400,
     title: 'О программе',
     resizable: false,
     minimizable: false,
@@ -54,7 +54,7 @@ function createTray(): void {
   tray = new Tray(icon);
   
   // Устанавливаем подсказку
-  tray.setToolTip('My Tray App');
+  tray.setToolTip('Pomodoro Timer');
   
   // Создаём контекстное меню
   const contextMenu = Menu.buildFromTemplate([
