@@ -13,6 +13,8 @@ vi.mock("electron", () => ({
   app: {
     getPath: vi.fn().mockReturnValue("/mock/userData"),
     getVersion: vi.fn().mockReturnValue("1.0.0"),
+    isReady: vi.fn().mockReturnValue(false),
+    whenReady: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
