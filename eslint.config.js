@@ -18,6 +18,9 @@ export default [
       globals: {
         process: "readonly",
         setTimeout: "readonly",
+        setInterval: "readonly",
+        clearTimeout: "readonly",
+        clearInterval: "readonly",
         Buffer: "readonly",
         __dirname: "readonly",
         __filename: "readonly",

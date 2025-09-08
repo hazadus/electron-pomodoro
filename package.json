@@ -1,5 +1,5 @@
 {
-  "name": "electron-learn",
+  "name": "electron-pomodoro",
   "version": "1.0.0",
   "description": "",
   "main": "dist/main.js",
