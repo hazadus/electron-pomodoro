@@ -5,6 +5,7 @@ import {
   TRAY_MENU_LABELS,
   UPDATE_INTERVALS,
 } from "@/utils/constants";
+import { trayLogger } from "@/utils/logger";
 import { TimeFormatter } from "@/utils/timeFormatter";
 import { Menu, MenuItemConstructorOptions, nativeImage, Tray } from "electron";
 import * as path from "path";
@@ -34,7 +35,7 @@ export class TrayManager {
       const icon = nativeImage.createFromPath(iconPath);
 
       if (icon.isEmpty()) {
-        console.warn("Tray icon not found, using empty image");
+        trayLogger.warn("Tray icon not found, using empty image");
       }
 
       this.tray = new Tray(icon);
@@ -42,9 +43,9 @@ export class TrayManager {
       this.updateTrayTitle("Pomodoro Timer");
       this.buildContextMenu();
 
-      console.log("TrayManager initialized successfully");
+      trayLogger.info("TrayManager initialized successfully");
     } catch (error) {
-      console.error("Failed to initialize TrayManager:", error);
+      trayLogger.error("Failed to initialize TrayManager:", error);
       throw error;
     }
   }
