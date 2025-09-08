@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "mkdir -p dist/windows && cp src/*.html dist/ && cp src/windows/*.html dist/windows/",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron . --dev",
@@ -28,7 +29,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "devDependencies": {
     "@electron-forge/cli": "^7.8.3",
     "@electron-forge/maker-deb": "^7.8.3",
