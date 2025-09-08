@@ -42,7 +42,7 @@ export default [
       ...electron.configs.recommended.rules,
       ...security.configs.recommended.rules,
       "no-console": "warn",
-      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }],
       "security/detect-non-literal-fs-filename": "off",
     },
   },
