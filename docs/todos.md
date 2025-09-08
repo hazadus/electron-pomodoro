@@ -35,10 +35,10 @@
 
 ### 🔧 Утилиты
 
-- [ ] 📁 Реализовать `fileManager.ts` для работы с userData
-- [ ] 🕐 Реализовать `timeFormatter.ts` для форматирования времени
-- [ ] 📋 Создать `constants.ts` с константами приложения
-- [ ] 📝 Настроить `logger.ts` с electron-log
+- [x] 📁 Реализовать `fileManager.ts` для работы с userData
+- [x] 🕐 Реализовать `timeFormatter.ts` для форматирования времени
+- [x] 📋 Создать `constants.ts` с константами приложения
+- [x] 📝 Настроить `logger.ts` с electron-log
 
 ## 🎛️ Основные сервисы
 

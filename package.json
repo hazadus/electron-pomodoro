@@ -70,6 +70,7 @@
     }
   },
   "dependencies": {
+    "electron-log": "^5.4.3",
     "play-sound": "^1.1.6"
   },
   "lint-staged": {
