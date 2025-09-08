@@ -88,8 +88,8 @@ export const WINDOW_CONFIG = {
     resizable: false,
   },
   STATS: {
-    width: 350,
-    height: 250,
+    width: 450,
+    height: 350,
     resizable: false,
   },
   ABOUT: {

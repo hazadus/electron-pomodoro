@@ -1,18 +1,19 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import * as path from "path";
+import {
+  NotificationHandler,
+  NotificationService,
+} from "./services/NotificationService";
 import { settingsService } from "./services/SettingsService";
+import { SoundService } from "./services/SoundService";
+import { statsService } from "./services/StatsService";
 import { TimerService } from "./services/TimerService";
 import { TrayManager, TrayManagerCallbacks } from "./services/TrayManager";
-import {
-  NotificationService,
-  NotificationHandler,
-} from "./services/NotificationService";
-import { SoundService } from "./services/SoundService";
+import type { NotificationActionType } from "./types/notification";
 import type { SettingsFormData } from "./types/settings";
 import type { TimerConfig, TimerType } from "./types/timer";
-import type { NotificationActionType } from "./types/notification";
-import { createLogger } from "./utils/logger";
 import { ASSETS_PATHS } from "./utils/constants";
+import { createLogger } from "./utils/logger";
 
 const logger = createLogger("main");
 
@@ -22,6 +23,7 @@ let notificationService: NotificationService | null = null;
 let soundService: SoundService | null = null;
 let aboutWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
+let statsWindow: BrowserWindow | null = null;
 
 // Предотвращаем закрытие приложения при закрытии всех окон
 app.on("window-all-closed", () => {
@@ -104,6 +106,43 @@ function createSettingsWindow(): void {
 
   // Центрирование окна
   settingsWindow.center();
+}
+
+// Функция создания окна статистики
+function createStatsWindow(): void {
+  if (statsWindow) {
+    statsWindow.show();
+    statsWindow.focus();
+    return;
+  }
+
+  statsWindow = new BrowserWindow({
+    width: 350,
+    height: 250,
+    title: "Статистика",
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    modal: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      webviewTag: false,
+      preload: path.join(__dirname, "windows", "preloads", "statsPreload.js"),
+    },
+  });
+
+  statsWindow.loadFile(path.join(__dirname, "windows", "stats.html"));
+
+  // Убираем меню в окне (только для Windows/Linux)
+  statsWindow.setMenu(null);
+
+  statsWindow.on("closed", () => {
+    statsWindow = null;
+  });
+
+  // Центрирование окна
+  statsWindow.center();
 }
 
 // Функция создания и инициализации TimerService
@@ -244,8 +283,7 @@ function createTrayManager(): void {
       createSettingsWindow();
     },
     onShowStats: () => {
-      // TODO: Интегрировать с окном статистики
-      logger.info("Show stats");
+      createStatsWindow();
     },
     onShowAbout: () => {
       createAboutWindow();
@@ -332,6 +370,68 @@ function setupSettingsIPC(): void {
   });
 }
 
+// Настройка IPC обработчиков для окна статистики
+function setupStatsIPC(): void {
+  // Получение текущей статистики
+  ipcMain.handle("stats:get", async () => {
+    try {
+      return statsService.getStats();
+    } catch (error) {
+      logger.error("Error getting stats:", error);
+      throw error;
+    }
+  });
+
+  // Показ диалога подтверждения сброса
+  ipcMain.handle("stats:show-reset-dialog", async () => {
+    try {
+      if (!statsWindow) {
+        throw new Error("Stats window not available");
+      }
+
+      const result = await dialog.showMessageBox(statsWindow, {
+        type: "warning",
+        title: "Подтверждение сброса",
+        message: "Сбросить всю статистику?",
+        detail: "Это действие нельзя отменить.",
+        buttons: ["Отмена", "Сбросить"],
+        defaultId: 0,
+        cancelId: 0,
+      });
+
+      return result.response === 1; // true если выбрана кнопка "Сбросить"
+    } catch (error) {
+      logger.error("Error showing reset dialog:", error);
+      throw error;
+    }
+  });
+
+  // Сброс статистики
+  ipcMain.handle("stats:reset", async () => {
+    try {
+      await statsService.resetStats();
+
+      // Отправляем обновленную статистику всем окнам статистики
+      const updatedStats = statsService.getStats();
+      if (statsWindow) {
+        statsWindow.webContents.send("stats:updated", updatedStats);
+      }
+
+      return true;
+    } catch (error) {
+      logger.error("Error resetting stats:", error);
+      throw error;
+    }
+  });
+
+  // Закрытие окна статистики
+  ipcMain.on("stats:close", () => {
+    if (statsWindow) {
+      statsWindow.close();
+    }
+  });
+}
+
 // Функция инициализации сервисов
 function initializeServices(): void {
   // Инициализируем SoundService
@@ -376,8 +476,12 @@ app.whenReady().then(async () => {
     // Инициализируем сервис настроек
     await settingsService.initialize();
 
+    // Инициализируем сервис статистики
+    await statsService.initialize();
+
     // Настраиваем IPC обработчики
     setupSettingsIPC();
+    setupStatsIPC();
 
     // Скрываем иконку из дока на macOS
     if (process.platform === "darwin" && app.dock) {
@@ -390,6 +494,7 @@ app.whenReady().then(async () => {
     logger.error("Failed to initialize application:", error);
     // Приложение может продолжить работу с настройками по умолчанию
     setupSettingsIPC();
+    setupStatsIPC();
     initializeServices();
   }
 });

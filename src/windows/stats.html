@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Статистика</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        height: 100vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        width: 100%;
+        max-width: 350px;
+        min-height: 200px;
+      }
+
+      h1 {
+        text-align: center;
+        margin: 0 0 30px 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .stats-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 14px;
+      }
+
+      .stat-label {
+        font-weight: 500;
+        opacity: 0.9;
+      }
+
+      .stat-value {
+        font-weight: 600;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.95);
+      }
+
+      .reset-button {
+        width: 100%;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+      }
+
+      .reset-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+      }
+
+      .reset-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+      }
+
+      .reset-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2) !important;
+      }
+
+      /* Анимация загрузки */
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      /* Состояние пустой статистики */
+      .empty-state {
+        text-align: center;
+        opacity: 0.7;
+        padding: 20px 0;
+      }
+
+      .empty-state .icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+
+      .empty-state .message {
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      /* Мигающий эффект при обновлении */
+      .updating {
+        animation: pulse 0.5s ease-in-out;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      /* Скрытие элементов */
+      .hidden {
+        display: none;
+      }
+
+      /* Индикатор успешного сброса */
+      .success-indicator {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(46, 204, 113, 0.9);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      }
+
+      .success-indicator.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📈 Статистика работы</h1>
+
+      <!-- Индикатор успешного сброса -->
+      <div class="success-indicator" id="successIndicator">
+        Статистика успешно сброшена
+      </div>
+
+      <!-- Основной контент статистики -->
+      <div id="statsContent">
+        <div class="stats-list" id="statsList">
+          <div class="stat-item">
+            <span class="stat-label">Выполнено рабочих сессий:</span>
+            <span class="stat-value" id="workSessions">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Выполнено коротких перерывов:</span>
+            <span class="stat-value" id="shortBreakSessions">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Выполнено длинных перерывов:</span>
+            <span class="stat-value" id="longBreakSessions">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Общее время работы:</span>
+            <span class="stat-value" id="totalWorkTime">0м</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Общее время отдыха:</span>
+            <span class="stat-value" id="totalBreakTime">0м</span>
+          </div>
+        </div>
+
+        <button class="reset-button" id="resetButton">
+          🗑️ Сбросить статистику
+        </button>
+      </div>
+
+      <!-- Состояние пустой статистики (скрыто по умолчанию) -->
+      <div class="empty-state hidden" id="emptyState">
+        <div class="icon">📊</div>
+        <div class="message">
+          Пока нет данных о сессиях.<br />
+          Запустите таймер, чтобы начать сбор статистики.
+        </div>
+        <button class="reset-button" disabled>🗑️ Сбросить статистику</button>
+      </div>
+    </div>
+
+    <script>
+      // Элементы DOM
+      const statsContent = document.getElementById("statsContent");
+      const emptyState = document.getElementById("emptyState");
+      const statsList = document.getElementById("statsList");
+      const resetButton = document.getElementById("resetButton");
+      const successIndicator = document.getElementById("successIndicator");
+
+      // Элементы для отображения статистики
+      const workSessionsElement = document.getElementById("workSessions");
+      const shortBreakSessionsElement =
+        document.getElementById("shortBreakSessions");
+      const longBreakSessionsElement =
+        document.getElementById("longBreakSessions");
+      const totalWorkTimeElement = document.getElementById("totalWorkTime");
+      const totalBreakTimeElement = document.getElementById("totalBreakTime");
+
+      // Состояние загрузки
+      function setLoading(loading) {
+        const container = document.querySelector(".container");
+        if (loading) {
+          container.classList.add("loading");
+          resetButton.disabled = true;
+        } else {
+          container.classList.remove("loading");
+          resetButton.disabled = false;
+        }
+      }
+
+      // Анимация обновления
+      function showUpdateAnimation() {
+        statsList.classList.add("updating");
+        setTimeout(() => {
+          statsList.classList.remove("updating");
+        }, 500);
+      }
+
+      // Показать индикатор успеха
+      function showSuccessIndicator() {
+        successIndicator.classList.add("show");
+        setTimeout(() => {
+          successIndicator.classList.remove("show");
+        }, 3000);
+      }
+
+      // Форматирование времени в формат "Xч Xм" или "Xм"
+      function formatDuration(minutes) {
+        if (minutes === 0) {
+          return "0м";
+        }
+
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+
+        if (hours === 0) {
+          return `${remainingMinutes}м`;
+        }
+
+        if (remainingMinutes === 0) {
+          return `${hours}ч`;
+        }
+
+        return `${hours}ч ${remainingMinutes}м`;
+      }
+
+      // Проверка, есть ли статистика
+      function hasStats(stats) {
+        return (
+          stats.workSessions > 0 ||
+          stats.shortBreakSessions > 0 ||
+          stats.longBreakSessions > 0 ||
+          stats.totalWorkTime > 0 ||
+          stats.totalBreakTime > 0
+        );
+      }
+
+      // Обновление отображения статистики
+      function updateStatsDisplay(stats) {
+        if (!hasStats(stats)) {
+          // Показываем пустое состояние
+          statsContent.classList.add("hidden");
+          emptyState.classList.remove("hidden");
+          return;
+        }
+
+        // Показываем основной контент
+        emptyState.classList.add("hidden");
+        statsContent.classList.remove("hidden");
+
+        // Обновляем значения
+        workSessionsElement.textContent = stats.workSessions.toString();
+        shortBreakSessionsElement.textContent =
+          stats.shortBreakSessions.toString();
+        longBreakSessionsElement.textContent =
+          stats.longBreakSessions.toString();
+        totalWorkTimeElement.textContent = formatDuration(stats.totalWorkTime);
+        totalBreakTimeElement.textContent = formatDuration(
+          stats.totalBreakTime
+        );
+
+        // Показываем анимацию обновления
+        showUpdateAnimation();
+      }
+
+      // Загрузка статистики
+      async function loadStats() {
+        if (window.electronAPI && window.electronAPI.stats) {
+          try {
+            const stats = await window.electronAPI.stats.getStats();
+            updateStatsDisplay(stats);
+          } catch (error) {
+            console.error("Не удалось загрузить статистику:", error);
+          }
+        }
+      }
+
+      // Сброс статистики
+      async function resetStats() {
+        if (window.electronAPI && window.electronAPI.stats) {
+          setLoading(true);
+
+          try {
+            const confirmed = await window.electronAPI.stats.showResetDialog();
+
+            if (confirmed) {
+              await window.electronAPI.stats.resetStats();
+
+              // Показываем пустое состояние
+              const emptyStats = {
+                workSessions: 0,
+                shortBreakSessions: 0,
+                longBreakSessions: 0,
+                totalWorkTime: 0,
+                totalBreakTime: 0,
+                lastResetDate: new Date().toISOString(),
+                version: "1.0.0",
+              };
+
+              updateStatsDisplay(emptyStats);
+              showSuccessIndicator();
+            }
+          } catch (error) {
+            console.error("Не удалось сбросить статистику:", error);
+            alert("Не удалось сбросить статистику. Попробуйте еще раз.");
+          } finally {
+            setLoading(false);
+          }
+        }
+      }
+
+      // Обработчики событий
+      resetButton.addEventListener("click", resetStats);
+
+      // Обработчик закрытия окна (Escape)
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (window.electronAPI && window.electronAPI.stats) {
+            window.electronAPI.stats.closeWindow();
+          }
+        }
+      });
+
+      // Автообновление статистики при получении обновлений
+      if (window.electronAPI && window.electronAPI.stats) {
+        window.electronAPI.stats.onStatsUpdated((stats) => {
+          updateStatsDisplay(stats);
+        });
+      }
+
+      // Загружаем статистику при загрузке страницы
+      document.addEventListener("DOMContentLoaded", () => {
+        loadStats();
+      });
+    </script>
+  </body>
+</html>
