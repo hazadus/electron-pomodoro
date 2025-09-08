@@ -1,0 +1,34 @@
+import js from "@eslint/js";
+import typescript from "@typescript-eslint/eslint-plugin";
+import typescriptParser from "@typescript-eslint/parser";
+import prettier from "eslint-config-prettier";
+import electron from "eslint-plugin-electron";
+import security from "eslint-plugin-security";
+
+export default [
+  js.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.js"],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: "module",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": typescript,
+      electron: electron,
+      security: security,
+    },
+    rules: {
+      ...typescript.configs.recommended.rules,
+      ...electron.configs.recommended.rules,
+      ...security.configs.recommended.rules,
+      "no-console": "warn",
+      "@typescript-eslint/no-unused-vars": "error",
+      "security/detect-non-literal-fs-filename": "off",
+    },
+  },
+  prettier,
+];

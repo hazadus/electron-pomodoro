@@ -9,8 +9,15 @@
     "start": "npm run build && electron .",
     "dev": "npm run build && electron . --dev",
     "package": "electron-forge package",
-    "make": "electron-forge make"
-  },  "keywords": [],
+    "make": "electron-forge make",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.{ts,html,css,json}",
+    "format:check": "prettier --check src/**/*.{ts,html,css,json}",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -20,8 +27,18 @@
     "@electron-forge/maker-rpm": "^7.8.3",
     "@electron-forge/maker-squirrel": "^7.8.3",
     "@electron-forge/maker-zip": "^7.8.3",
+    "@eslint/js": "^9.35.0",
     "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "electron": "^38.0.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-electron": "^7.0.0",
+    "eslint-plugin-security": "^3.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   },
   "config": {
@@ -30,9 +47,23 @@
       "makers": [
         {
           "name": "@electron-forge/maker-zip",
-          "platforms": ["darwin"]
+          "platforms": [
+            "darwin"
+          ]
         }
       ]
     }
+  },
+  "dependencies": {
+    "play-sound": "^1.1.6"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.{html,css,json}": [
+      "prettier --write"
+    ]
   }
 }
