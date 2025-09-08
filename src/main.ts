@@ -1,10 +1,16 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import * as path from "path";
 import { settingsService } from "./services/SettingsService";
+import { TimerService } from "./services/TimerService";
 import { TrayManager, TrayManagerCallbacks } from "./services/TrayManager";
 import type { SettingsFormData } from "./types/settings";
+import type { TimerConfig, TimerType } from "./types/timer";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("main");
 
 let trayManager: TrayManager | null = null;
+let timerService: TimerService | null = null;
 let aboutWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
 
@@ -34,6 +40,7 @@ function createAboutWindow(): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      webviewTag: false,
       preload: path.join(__dirname, "preload.js"),
     },
   });
@@ -67,6 +74,7 @@ function createSettingsWindow(): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      webviewTag: false,
       preload: path.join(
         __dirname,
         "windows",
@@ -89,23 +97,85 @@ function createSettingsWindow(): void {
   settingsWindow.center();
 }
 
+// Функция создания и инициализации TimerService
+function createTimerService(): void {
+  timerService = new TimerService({
+    onTick: (_remainingTime: number) => {
+      // Обновляем трей каждую секунду
+      if (trayManager && timerService) {
+        trayManager.updateTimer(timerService.getCurrentTimer());
+      }
+    },
+    onComplete: (type: TimerType, actualDuration: number) => {
+      // TODO: Интегрировать с NotificationService и SoundService
+      logger.info(
+        `Timer completed: ${type}, duration: ${actualDuration} minutes`
+      );
+
+      // Обновляем трей после завершения таймера
+      if (trayManager) {
+        trayManager.updateTimer(null);
+      }
+    },
+    onStart: (type: TimerType, duration: number) => {
+      logger.info(`Timer started: ${type}, duration: ${duration} minutes`);
+
+      // Обновляем трей при запуске таймера
+      if (trayManager && timerService) {
+        trayManager.updateTimer(timerService.getCurrentTimer());
+      }
+    },
+    onStop: (type: TimerType, remainingTime: number) => {
+      logger.info(
+        `Timer stopped: ${type}, remaining: ${remainingTime} seconds`
+      );
+
+      // Обновляем трей после остановки таймера
+      if (trayManager) {
+        trayManager.updateTimer(null);
+      }
+    },
+  });
+}
+
 // Функция создания системного трея
 function createTrayManager(): void {
   const callbacks: TrayManagerCallbacks = {
     onStartTimer: (type) => {
-      // TODO: Интегрировать с TimerService
-      console.log(`Starting timer: ${type}`);
+      if (timerService) {
+        // Получаем продолжительность из настроек
+        const settings = settingsService.getSettings();
+        let duration: number;
+
+        switch (type) {
+          case "work":
+            duration = settings.workDuration;
+            break;
+          case "shortBreak":
+            duration = settings.shortBreakDuration;
+            break;
+          case "longBreak":
+            duration = settings.longBreakDuration;
+            break;
+          default:
+            duration = 25; // fallback
+        }
+
+        const config: TimerConfig = { type, duration };
+        timerService.startTimer(config);
+      }
     },
     onStopTimer: () => {
-      // TODO: Интегрировать с TimerService
-      console.log("Stopping timer");
+      if (timerService) {
+        timerService.stopTimer();
+      }
     },
     onShowSettings: () => {
       createSettingsWindow();
     },
     onShowStats: () => {
       // TODO: Интегрировать с окном статистики
-      console.log("Show stats");
+      logger.info("Show stats");
     },
     onShowAbout: () => {
       createAboutWindow();
@@ -126,7 +196,7 @@ function setupSettingsIPC(): void {
     try {
       return settingsService.getSettings();
     } catch (error) {
-      console.error("Error getting settings:", error);
+      logger.error("Error getting settings:", error);
       throw error;
     }
   });
@@ -157,7 +227,7 @@ function setupSettingsIPC(): void {
 
         return true;
       } catch (error) {
-        console.error("Error saving settings:", error);
+        logger.error("Error saving settings:", error);
         throw error;
       }
     }
@@ -179,7 +249,7 @@ function setupSettingsIPC(): void {
 
       return true;
     } catch (error) {
-      console.error("Error resetting settings:", error);
+      logger.error("Error resetting settings:", error);
       throw error;
     }
   });
@@ -201,6 +271,9 @@ app.whenReady().then(async () => {
     // Настраиваем IPC обработчики
     setupSettingsIPC();
 
+    // Создаем TimerService
+    createTimerService();
+
     // Скрываем иконку из дока на macOS
     if (process.platform === "darwin" && app.dock) {
       app.dock.hide();
@@ -208,9 +281,10 @@ app.whenReady().then(async () => {
 
     createTrayManager();
   } catch (error) {
-    console.error("Failed to initialize application:", error);
+    logger.error("Failed to initialize application:", error);
     // Приложение может продолжить работу с настройками по умолчанию
     setupSettingsIPC();
+    createTimerService();
     createTrayManager();
   }
 });
@@ -224,6 +298,11 @@ app.on("activate", () => {
 
 // Предотвращаем выход при закрытии окна на macOS
 app.on("before-quit", () => {
+  // Очищаем TimerService перед выходом
+  if (timerService) {
+    timerService.destroy();
+  }
+
   // Очищаем трей перед выходом
   if (trayManager) {
     trayManager.destroy();
