@@ -185,8 +185,18 @@ export class TrayManager {
       ];
     }
 
-    const contextMenu = Menu.buildFromTemplate(menuTemplate);
-    this.tray.setContextMenu(contextMenu);
+    this.contextMenu = Menu.buildFromTemplate(menuTemplate);
+    this.tray.setContextMenu(this.contextMenu);
+  }
+
+  getTray(): Tray | null {
+    return this.tray;
+  }
+
+  private contextMenu: Menu | null = null;
+
+  getContextMenu(): Menu | null {
+    return this.contextMenu;
   }
 
   destroy(): void {

@@ -106,7 +106,7 @@
 
 - [x] Интегрировать `TrayManager` в `main.ts`
 - [x] Интегрировать `TimerService` в `main.ts`
-- [ ] Интегрировать `NotificationService` и `SoundService` в `main.ts`
+- [x] Интегрировать `NotificationService` и `SoundService` в `main.ts`
 
 ### 📊 Окно статистики
 

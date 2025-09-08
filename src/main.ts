@@ -3,14 +3,23 @@ import * as path from "path";
 import { settingsService } from "./services/SettingsService";
 import { TimerService } from "./services/TimerService";
 import { TrayManager, TrayManagerCallbacks } from "./services/TrayManager";
+import {
+  NotificationService,
+  NotificationHandler,
+} from "./services/NotificationService";
+import { SoundService } from "./services/SoundService";
 import type { SettingsFormData } from "./types/settings";
 import type { TimerConfig, TimerType } from "./types/timer";
+import type { NotificationActionType } from "./types/notification";
 import { createLogger } from "./utils/logger";
+import { ASSETS_PATHS } from "./utils/constants";
 
 const logger = createLogger("main");
 
 let trayManager: TrayManager | null = null;
 let timerService: TimerService | null = null;
+let notificationService: NotificationService | null = null;
+let soundService: SoundService | null = null;
 let aboutWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
 
@@ -106,8 +115,7 @@ function createTimerService(): void {
         trayManager.updateTimer(timerService.getCurrentTimer());
       }
     },
-    onComplete: (type: TimerType, actualDuration: number) => {
-      // TODO: Интегрировать с NotificationService и SoundService
+    onComplete: async (type: TimerType, actualDuration: number) => {
       logger.info(
         `Timer completed: ${type}, duration: ${actualDuration} minutes`
       );
@@ -115,6 +123,27 @@ function createTimerService(): void {
       // Обновляем трей после завершения таймера
       if (trayManager) {
         trayManager.updateTimer(null);
+      }
+
+      // Показываем уведомление
+      if (notificationService) {
+        try {
+          await notificationService.showInteractiveNotification(type);
+        } catch (error) {
+          logger.error("Failed to show notification:", error);
+        }
+      }
+
+      // Воспроизводим звук
+      if (soundService) {
+        const settings = settingsService.getSettings();
+        if (settings.soundEnabled) {
+          try {
+            await soundService.playNotificationSound();
+          } catch (error) {
+            logger.error("Failed to play notification sound:", error);
+          }
+        }
       }
     },
     onStart: (type: TimerType, duration: number) => {
@@ -136,6 +165,47 @@ function createTimerService(): void {
       }
     },
   });
+}
+
+// Класс для обработки уведомлений
+class NotificationHandlerImpl implements NotificationHandler {
+  onNotificationAction(action: NotificationActionType): void {
+    logger.info("Notification action triggered:", { action });
+
+    if (!timerService) {
+      logger.error("TimerService not available");
+      return;
+    }
+
+    const settings = settingsService.getSettings();
+
+    switch (action) {
+      case "start-work":
+        timerService.startTimer({
+          type: "work",
+          duration: settings.workDuration,
+        });
+        break;
+      case "start-short-break":
+        timerService.startTimer({
+          type: "shortBreak",
+          duration: settings.shortBreakDuration,
+        });
+        break;
+      case "start-long-break":
+        timerService.startTimer({
+          type: "longBreak",
+          duration: settings.longBreakDuration,
+        });
+        break;
+      case "dismiss":
+        // Просто закрываем уведомление, никаких дополнительных действий
+        logger.info("Notification dismissed");
+        break;
+      default:
+        logger.warn("Unknown notification action:", { action });
+    }
+  }
 }
 
 // Функция создания системного трея
@@ -262,6 +332,44 @@ function setupSettingsIPC(): void {
   });
 }
 
+// Функция инициализации сервисов
+function initializeServices(): void {
+  // Инициализируем SoundService
+  soundService = new SoundService();
+  logger.info("SoundService initialized");
+
+  // Инициализируем TimerService
+  createTimerService();
+
+  // Создаем TrayManager
+  createTrayManager();
+
+  // Инициализируем NotificationService после создания трея
+  const tray = trayManager?.getTray();
+  const contextMenu = trayManager?.getContextMenu();
+
+  if (tray && contextMenu) {
+    notificationService = new NotificationService(tray);
+    notificationService.setHandler(new NotificationHandlerImpl());
+    notificationService.setOriginalMenu(contextMenu);
+    logger.info("NotificationService initialized");
+  } else {
+    logger.error(
+      "Failed to initialize NotificationService: tray or context menu not available"
+    );
+  }
+
+  // Загружаем звуковой файл если нужно
+  const soundPath = path.join(
+    __dirname,
+    "..",
+    ASSETS_PATHS.SOUNDS.NOTIFICATION
+  );
+  soundService.loadSound(soundPath).catch((error) => {
+    logger.warn("Failed to load notification sound:", error);
+  });
+}
+
 // Когда приложение готово
 app.whenReady().then(async () => {
   try {
@@ -271,21 +379,18 @@ app.whenReady().then(async () => {
     // Настраиваем IPC обработчики
     setupSettingsIPC();
 
-    // Создаем TimerService
-    createTimerService();
-
     // Скрываем иконку из дока на macOS
     if (process.platform === "darwin" && app.dock) {
       app.dock.hide();
     }
 
-    createTrayManager();
+    // Инициализируем все сервисы
+    initializeServices();
   } catch (error) {
     logger.error("Failed to initialize application:", error);
     // Приложение может продолжить работу с настройками по умолчанию
     setupSettingsIPC();
-    createTimerService();
-    createTrayManager();
+    initializeServices();
   }
 });
 
@@ -301,6 +406,11 @@ app.on("before-quit", () => {
   // Очищаем TimerService перед выходом
   if (timerService) {
     timerService.destroy();
+  }
+
+  // Очищаем NotificationService перед выходом
+  if (notificationService) {
+    notificationService.dismissNotification();
   }
 
   // Очищаем трей перед выходом
