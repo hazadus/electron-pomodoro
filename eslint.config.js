@@ -15,6 +15,18 @@ export default [
         ecmaVersion: 2020,
         sourceType: "module",
       },
+      globals: {
+        process: "readonly",
+        setTimeout: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        console: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        global: "readonly",
+      },
     },
     plugins: {
       "@typescript-eslint": typescript,
