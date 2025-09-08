@@ -1,14 +1,14 @@
+import { Menu, MenuItem, Tray } from "electron";
 import {
   NOTIFICATION_ACTIONS,
   NotificationActionType,
-} from "@/types/notification";
+} from "../types/notification";
 import {
   TIMER_COMPLETION_MESSAGES,
   TIMER_EMOJIS,
   TimerType,
-} from "@/types/timer";
-import { createLogger } from "@/utils/logger";
-import { Menu, MenuItem, Tray } from "electron";
+} from "../types/timer";
+import { createLogger } from "../utils/logger";
 
 export interface NotificationHandler {
   onNotificationAction(action: NotificationActionType): void;

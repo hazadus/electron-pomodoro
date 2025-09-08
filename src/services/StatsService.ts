@@ -10,10 +10,10 @@ import {
   StatsResetEvent,
   StatsUpdateEvent,
   StatsValidationResult,
-} from "@/types/stats";
-import { APP_VERSION, DATA_FILES } from "@/utils/constants";
-import { fileManager } from "@/utils/fileManager";
-import { errorLogger, performanceLogger, statsLogger } from "@/utils/logger";
+} from "../types/stats";
+import { APP_VERSION, DATA_FILES } from "../utils/constants";
+import { fileManager } from "../utils/fileManager";
+import { errorLogger, performanceLogger, statsLogger } from "../utils/logger";
 
 export class StatsService {
   private stats: StatsData;
@@ -263,7 +263,7 @@ export class StatsService {
   /**
    * Валидация структуры данных статистики
    */
-  validateStatsData(data: unknown): data is StatsData {
+  private validateStatsData(data: unknown): data is StatsData {
     if (!data || typeof data !== "object") {
       return false;
     }

@@ -1,5 +1,5 @@
-import { PlaySoundPlayer, SoundConfig } from "@/types/sound";
 import { promises as fs } from "fs";
+import { PlaySoundPlayer, SoundConfig } from "../types/sound";
 import { soundLogger } from "../utils/logger";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
