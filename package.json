@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/windows && cp src/*.html dist/ && cp src/windows/*.html dist/windows/",
+    "copy-assets": "mkdir -p dist/windows && cp src/windows/*.html dist/windows/",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron . --dev",

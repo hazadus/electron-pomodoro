@@ -91,16 +91,16 @@ describe('Constants', () => {
 
   describe('Window Configuration', () => {
     it('should have reasonable window dimensions', () => {
-      expect(WINDOW_CONFIG.SETTINGS.width).toBe(400);
-      expect(WINDOW_CONFIG.SETTINGS.height).toBe(300);
+      expect(WINDOW_CONFIG.SETTINGS.width).toBe(470);
+      expect(WINDOW_CONFIG.SETTINGS.height).toBe(550);
       expect(WINDOW_CONFIG.SETTINGS.resizable).toBe(false);
 
-      expect(WINDOW_CONFIG.STATS.width).toBe(350);
-      expect(WINDOW_CONFIG.STATS.height).toBe(250);
+      expect(WINDOW_CONFIG.STATS.width).toBe(450);
+      expect(WINDOW_CONFIG.STATS.height).toBe(500);
       expect(WINDOW_CONFIG.STATS.resizable).toBe(false);
 
       expect(WINDOW_CONFIG.ABOUT.width).toBe(400);
-      expect(WINDOW_CONFIG.ABOUT.height).toBe(300);
+      expect(WINDOW_CONFIG.ABOUT.height).toBe(450);
       expect(WINDOW_CONFIG.ABOUT.resizable).toBe(false);
     });
   });

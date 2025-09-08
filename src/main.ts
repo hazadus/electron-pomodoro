@@ -12,7 +12,7 @@ import { TrayManager, TrayManagerCallbacks } from "./services/TrayManager";
 import type { NotificationActionType } from "./types/notification";
 import type { SettingsFormData } from "./types/settings";
 import type { TimerConfig, TimerType } from "./types/timer";
-import { ASSETS_PATHS } from "./utils/constants";
+import { ASSETS_PATHS, WINDOW_CONFIG } from "./utils/constants";
 import { createLogger } from "./utils/logger";
 
 const logger = createLogger("main");
@@ -42,10 +42,10 @@ function createAboutWindow(): void {
   }
 
   aboutWindow = new BrowserWindow({
-    width: 400,
-    height: 400,
+    width: WINDOW_CONFIG.ABOUT.width,
+    height: WINDOW_CONFIG.ABOUT.height,
     title: "О программе",
-    resizable: false,
+    resizable: WINDOW_CONFIG.ABOUT.resizable,
     minimizable: false,
     maximizable: false,
     webPreferences: {
@@ -56,7 +56,7 @@ function createAboutWindow(): void {
     },
   });
 
-  aboutWindow.loadFile(path.join(__dirname, "about.html"));
+  aboutWindow.loadFile(path.join(__dirname, "windows", "about.html"));
 
   // Убираем меню в окне (только для Windows/Linux)
   aboutWindow.setMenu(null);
@@ -75,10 +75,10 @@ function createSettingsWindow(): void {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 450,
-    height: 500,
+    width: WINDOW_CONFIG.SETTINGS.width,
+    height: WINDOW_CONFIG.SETTINGS.height,
     title: "Настройки",
-    resizable: false,
+    resizable: WINDOW_CONFIG.SETTINGS.resizable,
     minimizable: false,
     maximizable: false,
     modal: false,
@@ -117,10 +117,10 @@ function createStatsWindow(): void {
   }
 
   statsWindow = new BrowserWindow({
-    width: 350,
-    height: 250,
+    width: WINDOW_CONFIG.STATS.width,
+    height: WINDOW_CONFIG.STATS.height,
     title: "Статистика",
-    resizable: false,
+    resizable: WINDOW_CONFIG.STATS.resizable,
     minimizable: false,
     maximizable: false,
     modal: false,

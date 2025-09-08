@@ -68,13 +68,27 @@
         font-size: 11px;
         opacity: 0.6;
       }
+
+      p a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        margin: 0 5px;
+        font-size: 13px;
+        border-bottom: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      p a:hover {
+        color: white;
+        border-bottom-color: rgba(255, 255, 255, 0.5);
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="icon">🍅</div>
       <h1>Pomodoro Timer</h1>
-      <p>Простое приложение с системным треем</p>
+      <p>Простое приложение-таймер в системном трее</p>
       <p>Создано с помощью Electron и TypeScript</p>
       <p>
         Автор: Hazadus

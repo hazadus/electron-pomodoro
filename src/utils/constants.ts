@@ -83,18 +83,18 @@ export const ASSETS_PATHS = {
 // Настройки окон
 export const WINDOW_CONFIG = {
   SETTINGS: {
-    width: 400,
-    height: 300,
+    width: 470,
+    height: 550,
     resizable: false,
   },
   STATS: {
     width: 450,
-    height: 350,
+    height: 500,
     resizable: false,
   },
   ABOUT: {
     width: 400,
-    height: 300,
+    height: 450,
     resizable: false,
   },
 } as const;
