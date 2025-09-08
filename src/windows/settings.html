@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Настройки</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        height: 100vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h1 {
+        text-align: center;
+        margin: 0 0 30px 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+      }
+
+      input[type="number"]::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      /* Чекбокс стили */
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+      }
+
+      .checkbox-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+
+      input[type="checkbox"] {
+        opacity: 0;
+        position: absolute;
+        width: 0;
+        height: 0;
+      }
+
+      .checkbox-custom {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      input[type="checkbox"]:checked + .checkbox-custom {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 255, 255, 0.9);
+      }
+
+      input[type="checkbox"]:checked + .checkbox-custom::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #667eea;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .checkbox-label {
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      /* Кнопки */
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #667eea;
+      }
+
+      .btn-primary:hover {
+        background: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      /* Анимация загрузки */
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      /* Уведомления об ошибках */
+      .error {
+        color: #ff6b6b;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+      }
+
+      input.invalid {
+        border: 1px solid #ff6b6b;
+        background: rgba(255, 107, 107, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>⚙️ Настройки</h1>
+
+      <form id="settingsForm">
+        <div class="form-group">
+          <label for="workDuration">Работа (мин):</label>
+          <input
+            type="number"
+            id="workDuration"
+            name="workDuration"
+            min="1"
+            max="120"
+            placeholder="25"
+            required
+          />
+          <div class="error" id="workDurationError">
+            Значение должно быть от 1 до 120 минут
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="shortBreakDuration">Короткий перерыв (мин):</label>
+          <input
+            type="number"
+            id="shortBreakDuration"
+            name="shortBreakDuration"
+            min="1"
+            max="60"
+            placeholder="5"
+            required
+          />
+          <div class="error" id="shortBreakDurationError">
+            Значение должно быть от 1 до 60 минут
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="longBreakDuration">Длинный перерыв (мин):</label>
+          <input
+            type="number"
+            id="longBreakDuration"
+            name="longBreakDuration"
+            min="1"
+            max="120"
+            placeholder="15"
+            required
+          />
+          <div class="error" id="longBreakDurationError">
+            Значение должно быть от 1 до 120 минут
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="soundEnabled" name="soundEnabled" />
+            <div class="checkbox-custom"></div>
+          </div>
+          <label for="soundEnabled" class="checkbox-label"
+            >Звуковые уведомления</label
+          >
+        </div>
+
+        <div class="buttons">
+          <button type="button" class="btn btn-secondary" id="resetBtn">
+            Сброс к умолчанию
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">
+            Сохранить
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Основная логика будет в preload скрипте
+      const settingsForm = document.getElementById("settingsForm");
+      const saveBtn = document.getElementById("saveBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      // Поля формы
+      const workDurationInput = document.getElementById("workDuration");
+      const shortBreakDurationInput =
+        document.getElementById("shortBreakDuration");
+      const longBreakDurationInput =
+        document.getElementById("longBreakDuration");
+      const soundEnabledInput = document.getElementById("soundEnabled");
+
+      // Элементы для отображения ошибок
+      const workDurationError = document.getElementById("workDurationError");
+      const shortBreakDurationError = document.getElementById(
+        "shortBreakDurationError"
+      );
+      const longBreakDurationError = document.getElementById(
+        "longBreakDurationError"
+      );
+
+      // Функция валидации поля
+      function validateField(input, errorElement, min, max) {
+        const value = parseInt(input.value);
+        const isValid = value >= min && value <= max && !isNaN(value);
+
+        if (!isValid) {
+          input.classList.add("invalid");
+          errorElement.style.display = "block";
+        } else {
+          input.classList.remove("invalid");
+          errorElement.style.display = "none";
+        }
+
+        return isValid;
+      }
+
+      // Валидация в реальном времени
+      workDurationInput.addEventListener("input", () => {
+        validateField(workDurationInput, workDurationError, 1, 120);
+      });
+
+      shortBreakDurationInput.addEventListener("input", () => {
+        validateField(shortBreakDurationInput, shortBreakDurationError, 1, 60);
+      });
+
+      longBreakDurationInput.addEventListener("input", () => {
+        validateField(longBreakDurationInput, longBreakDurationError, 1, 120);
+      });
+
+      // Функция для валидации всей формы
+      function validateForm() {
+        const workValid = validateField(
+          workDurationInput,
+          workDurationError,
+          1,
+          120
+        );
+        const shortValid = validateField(
+          shortBreakDurationInput,
+          shortBreakDurationError,
+          1,
+          60
+        );
+        const longValid = validateField(
+          longBreakDurationInput,
+          longBreakDurationError,
+          1,
+          120
+        );
+
+        return workValid && shortValid && longValid;
+      }
+
+      // Функция для установки состояния загрузки
+      function setLoading(loading) {
+        const container = document.querySelector(".container");
+        if (loading) {
+          container.classList.add("loading");
+          saveBtn.disabled = true;
+          resetBtn.disabled = true;
+        } else {
+          container.classList.remove("loading");
+          saveBtn.disabled = false;
+          resetBtn.disabled = false;
+        }
+      }
+
+      // Функция для загрузки текущих настроек
+      async function loadSettings() {
+        if (window.electronAPI && window.electronAPI.settings) {
+          try {
+            const settings = await window.electronAPI.settings.getSettings();
+
+            workDurationInput.value = settings.workDuration;
+            shortBreakDurationInput.value = settings.shortBreakDuration;
+            longBreakDurationInput.value = settings.longBreakDuration;
+            soundEnabledInput.checked = settings.soundEnabled;
+          } catch (error) {
+            console.error("Не удалось загрузить настройки:", error);
+          }
+        }
+      }
+
+      // Обработчик отправки формы
+      settingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+          return;
+        }
+
+        if (window.electronAPI && window.electronAPI.settings) {
+          setLoading(true);
+
+          try {
+            const formData = {
+              workDuration: parseInt(workDurationInput.value),
+              shortBreakDuration: parseInt(shortBreakDurationInput.value),
+              longBreakDuration: parseInt(longBreakDurationInput.value),
+              soundEnabled: soundEnabledInput.checked,
+            };
+
+            await window.electronAPI.settings.saveSettings(formData);
+
+            // Закрыть окно после успешного сохранения
+            window.electronAPI.settings.closeWindow();
+          } catch (error) {
+            console.error("Не удалось сохранить настройки:", error);
+            alert("Не удалось сохранить настройки. Попробуйте еще раз.");
+          } finally {
+            setLoading(false);
+          }
+        }
+      });
+
+      // Обработчик кнопки сброса
+      resetBtn.addEventListener("click", async () => {
+        if (window.electronAPI && window.electronAPI.settings) {
+          setLoading(true);
+
+          try {
+            await window.electronAPI.settings.resetToDefaults();
+            await loadSettings(); // Перезагружаем настройки
+          } catch (error) {
+            console.error("Не удалось сбросить настройки:", error);
+            alert("Не удалось сбросить настройки. Попробуйте еще раз.");
+          } finally {
+            setLoading(false);
+          }
+        }
+      });
+
+      // Загружаем настройки при загрузке страницы
+      document.addEventListener("DOMContentLoaded", () => {
+        loadSettings();
+      });
+
+      // Обработчик закрытия окна (Escape)
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (window.electronAPI && window.electronAPI.settings) {
+            window.electronAPI.settings.closeWindow();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
