@@ -5,3 +5,9 @@ commitmsg:
 # Посчитать строки кода в проекте и сохранить в файл
 cloc:
     cloc --fullpath --exclude-list-file=.clocignore --md . > cloc.md
+
+# Провести все проверки приложения
+check:
+    npm run lint
+    npm run test:unit
+    npm run build

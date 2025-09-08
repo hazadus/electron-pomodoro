@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import * as path from "path";
 import { settingsService } from "./services/SettingsService";
+import { TrayManager, TrayManagerCallbacks } from "./services/TrayManager";
 import type { SettingsFormData } from "./types/settings";
 
-let tray: Tray | null = null;
+let trayManager: TrayManager | null = null;
 let aboutWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
 
@@ -89,49 +90,33 @@ function createSettingsWindow(): void {
 }
 
 // Функция создания системного трея
-function createTray(): void {
-  // Загружаем иконку
-  const iconPath = path.join(__dirname, "..", "assets", "icons", "icon.png");
-  const icon = nativeImage.createFromPath(iconPath);
-
-  // Создаём трей
-  tray = new Tray(icon);
-
-  // Устанавливаем подсказку
-  tray.setToolTip("Pomodoro Timer");
-
-  // Создаём контекстное меню
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "Настройки",
-      click: () => {
-        createSettingsWindow();
-      },
+function createTrayManager(): void {
+  const callbacks: TrayManagerCallbacks = {
+    onStartTimer: (type) => {
+      // TODO: Интегрировать с TimerService
+      console.log(`Starting timer: ${type}`);
     },
-    {
-      label: "О программе",
-      click: () => {
-        createAboutWindow();
-      },
+    onStopTimer: () => {
+      // TODO: Интегрировать с TimerService
+      console.log("Stopping timer");
     },
-    {
-      type: "separator",
+    onShowSettings: () => {
+      createSettingsWindow();
     },
-    {
-      label: "Выход",
-      click: () => {
-        app.quit();
-      },
+    onShowStats: () => {
+      // TODO: Интегрировать с окном статистики
+      console.log("Show stats");
     },
-  ]);
+    onShowAbout: () => {
+      createAboutWindow();
+    },
+    onQuit: () => {
+      app.quit();
+    },
+  };
 
-  // Устанавливаем меню для трея
-  tray.setContextMenu(contextMenu);
-
-  // На macOS клик по иконке обычно открывает меню
-  tray.on("click", () => {
-    tray?.popUpContextMenu();
-  });
+  trayManager = new TrayManager(callbacks);
+  trayManager.initialize();
 }
 
 // Настройка IPC обработчиков для окна настроек
@@ -221,12 +206,12 @@ app.whenReady().then(async () => {
       app.dock.hide();
     }
 
-    createTray();
+    createTrayManager();
   } catch (error) {
     console.error("Failed to initialize application:", error);
     // Приложение может продолжить работу с настройками по умолчанию
     setupSettingsIPC();
-    createTray();
+    createTrayManager();
   }
 });
 
@@ -240,7 +225,7 @@ app.on("activate", () => {
 // Предотвращаем выход при закрытии окна на macOS
 app.on("before-quit", () => {
   // Очищаем трей перед выходом
-  if (tray) {
-    tray.destroy();
+  if (trayManager) {
+    trayManager.destroy();
   }
 });

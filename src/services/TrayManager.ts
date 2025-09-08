@@ -1,14 +1,14 @@
-import { Timer, TimerType } from "@/types/timer";
+import { Menu, MenuItemConstructorOptions, nativeImage, Tray } from "electron";
+import * as path from "path";
+import { Timer, TimerType } from "../types/timer";
 import {
   ASSETS_PATHS,
   DEFAULT_TIMER_DURATIONS,
   TRAY_MENU_LABELS,
   UPDATE_INTERVALS,
-} from "@/utils/constants";
-import { trayLogger } from "@/utils/logger";
-import { TimeFormatter } from "@/utils/timeFormatter";
-import { Menu, MenuItemConstructorOptions, nativeImage, Tray } from "electron";
-import * as path from "path";
+} from "../utils/constants";
+import { trayLogger } from "../utils/logger";
+import { TimeFormatter } from "../utils/timeFormatter";
 
 export interface TrayManagerCallbacks {
   onStartTimer?: (type: TimerType) => void;
@@ -31,17 +31,24 @@ export class TrayManager {
 
   initialize(): void {
     try {
-      const iconPath = path.join(__dirname, "..", ASSETS_PATHS.ICONS.MAIN);
+      // Путь к иконке относительно корня проекта
+      const iconPath = path.join(process.cwd(), ASSETS_PATHS.ICONS.MAIN);
       const icon = nativeImage.createFromPath(iconPath);
 
       if (icon.isEmpty()) {
-        trayLogger.warn("Tray icon not found, using empty image");
+        trayLogger.warn("Tray icon not found, using empty image", { iconPath });
       }
 
       this.tray = new Tray(icon);
       this.tray.setToolTip("Pomodoro Timer");
-      this.updateTrayTitle("Pomodoro Timer");
       this.buildContextMenu();
+
+      // На macOS добавляем обработчик клика для показа меню
+      if (process.platform === "darwin") {
+        this.tray.on("click", () => {
+          this.tray?.popUpContextMenu();
+        });
+      }
 
       trayLogger.info("TrayManager initialized successfully");
     } catch (error) {
@@ -70,7 +77,12 @@ export class TrayManager {
         this.startUpdateInterval();
       }
     } else {
-      this.updateTrayTitle("Pomodoro Timer");
+      // Убираем title на macOS когда таймер не активен, показываем только tooltip
+      if (process.platform === "darwin") {
+        this.tray?.setTitle("");
+      } else {
+        this.tray?.setToolTip("Pomodoro Timer");
+      }
       this.stopUpdateInterval();
     }
   }
