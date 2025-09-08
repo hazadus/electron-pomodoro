@@ -23,8 +23,25 @@ function initializeMainLogger() {
   log.transports.file.format =
     "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}";
   log.transports.file.fileName = "main.log";
-  log.transports.file.resolvePathFn = () =>
-    path.join(app.getPath("userData"), DATA_FILES.LOGS_DIR, "main.log");
+
+  // Отложенная инициализация пути к файлу
+  log.transports.file.resolvePathFn = () => {
+    try {
+      if (app.isReady()) {
+        return path.join(
+          app.getPath("userData"),
+          DATA_FILES.LOGS_DIR,
+          "main.log"
+        );
+      } else {
+        // Используем временный путь в директории проекта, если приложение еще не готово
+        return path.join(process.cwd(), "temp-logs", "main.log");
+      }
+    } catch (_error) {
+      // Fallback на локальную директорию
+      return path.join(process.cwd(), "temp-logs", "main.log");
+    }
+  };
 
   // Настройка консольного транспорта
   log.transports.console.level = isDev ? "debug" : false;
@@ -42,29 +59,52 @@ export function createLogger(scope: string) {
   // Настройка файлового транспорта для каждого скоупа
   if (scope !== "main") {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (logger as any).transports.file.fileName = `${scope}.log`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (logger as any).transports.file.resolvePathFn = () =>
-      path.join(app.getPath("userData"), DATA_FILES.LOGS_DIR, `${scope}.log`);
+    const loggerAny = logger as any;
+
+    // Проверяем существование transports и file
+    if (loggerAny.transports && loggerAny.transports.file) {
+      loggerAny.transports.file.fileName = `${scope}.log`;
+      loggerAny.transports.file.resolvePathFn = () => {
+        try {
+          if (app.isReady()) {
+            return path.join(
+              app.getPath("userData"),
+              DATA_FILES.LOGS_DIR,
+              `${scope}.log`
+            );
+          } else {
+            // Используем временный путь в директории проекта, если приложение еще не готово
+            return path.join(process.cwd(), "temp-logs", `${scope}.log`);
+          }
+        } catch (_error) {
+          // Fallback на локальную директорию
+          return path.join(process.cwd(), "temp-logs", `${scope}.log`);
+        }
+      };
+    }
   }
 
   // Применяем общие настройки
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (logger as any).transports.file.level = isDev
-    ? LOGGING_CONFIG.LOG_LEVELS.DEVELOPMENT
-    : LOGGING_CONFIG.LOG_LEVELS.PRODUCTION;
+  const loggerAny = logger as any;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (logger as any).transports.file.maxSize = LOGGING_CONFIG.MAX_FILE_SIZE;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (logger as any).transports.file.format =
-    "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] [{scope}] {text}";
+  // Проверяем существование transports
+  if (loggerAny.transports) {
+    if (loggerAny.transports.file) {
+      loggerAny.transports.file.level = isDev
+        ? LOGGING_CONFIG.LOG_LEVELS.DEVELOPMENT
+        : LOGGING_CONFIG.LOG_LEVELS.PRODUCTION;
+      loggerAny.transports.file.maxSize = LOGGING_CONFIG.MAX_FILE_SIZE;
+      loggerAny.transports.file.format =
+        "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] [{scope}] {text}";
+    }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (logger as any).transports.console.level = isDev ? "debug" : false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (logger as any).transports.console.format =
-    "{h}:{i}:{s}.{ms} › [{level}] [{scope}] {text}";
+    if (loggerAny.transports.console) {
+      loggerAny.transports.console.level = isDev ? "debug" : false;
+      loggerAny.transports.console.format =
+        "{h}:{i}:{s}.{ms} › [{level}] [{scope}] {text}";
+    }
+  }
 
   return logger;
 }
@@ -222,14 +262,26 @@ export const soundLogger = createLogger("sound");
 export const errorLogger = new ErrorLogger("errors");
 export const performanceLogger = new PerformanceLogger("performance");
 
-// Логирование запуска приложения
-logger.info("Application logger initialized", {
-  version: app.getVersion(),
-  platform: process.platform,
-  nodeVersion: process.version,
-  electronVersion: process.versions.electron,
-  environment: isDev ? "development" : "production",
-});
+// Логирование запуска приложения (отложенное)
+if (app.isReady()) {
+  logger.info("Application logger initialized", {
+    version: app.getVersion(),
+    platform: process.platform,
+    nodeVersion: process.version,
+    electronVersion: process.versions.electron,
+    environment: isDev ? "development" : "production",
+  });
+} else {
+  app.whenReady().then(() => {
+    logger.info("Application logger initialized", {
+      version: app.getVersion(),
+      platform: process.platform,
+      nodeVersion: process.version,
+      electronVersion: process.versions.electron,
+      environment: isDev ? "development" : "production",
+    });
+  });
+}
 
 // Планируем очистку старых логов через 5 минут после запуска
 setTimeout(
