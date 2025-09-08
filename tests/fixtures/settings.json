@@ -1,0 +1,7 @@
+{
+  "workDuration": 25,
+  "shortBreakDuration": 5,
+  "longBreakDuration": 15,
+  "soundEnabled": true,
+  "version": "1.0.0"
+}

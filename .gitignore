@@ -2,3 +2,6 @@ node_modules/
 out/
 dist/
 .claude/settings.local.json
+coverage/
+playwright-report/
+test-results/

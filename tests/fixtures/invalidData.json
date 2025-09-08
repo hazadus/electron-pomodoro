@@ -1,0 +1,5 @@
+{
+  "invalidField": "this should cause validation error",
+  "workDuration": "not a number",
+  "missingFields": true
+}
