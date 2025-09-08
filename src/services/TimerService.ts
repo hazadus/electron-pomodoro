@@ -1,4 +1,3 @@
-import { EventEmitter } from "events";
 import {
   DEFAULT_DURATIONS,
   Timer,
@@ -6,9 +5,10 @@ import {
   TimerEventCallbacks,
   TimerState,
   TimerType,
-} from "../types/timer";
-import { THRESHOLDS, UPDATE_INTERVALS } from "../utils/constants";
-import { errorLogger, performanceLogger, timerLogger } from "../utils/logger";
+} from "@/types/timer";
+import { THRESHOLDS, UPDATE_INTERVALS } from "@/utils/constants";
+import { errorLogger, performanceLogger, timerLogger } from "@/utils/logger";
+import { EventEmitter } from "events";
 
 /**
  * Сервис управления таймерами Pomodoro

@@ -9,17 +9,17 @@
  * - Резервное копирование
  */
 
-import { EventEmitter } from "events";
 import {
   AppSettings,
   DEFAULT_SETTINGS,
   SETTINGS_VALIDATION,
   SettingsKey,
   SettingsUpdateEvent,
-} from "../types/settings";
-import { DATA_FILES, VALIDATION } from "../utils/constants";
-import { fileManager } from "../utils/fileManager";
-import { errorLogger, settingsLogger } from "../utils/logger";
+} from "@/types/settings";
+import { DATA_FILES, VALIDATION } from "@/utils/constants";
+import { fileManager } from "@/utils/fileManager";
+import { errorLogger, settingsLogger } from "@/utils/logger";
+import { EventEmitter } from "events";
 
 export interface SettingsServiceEvents {
   settingsChanged: (event: SettingsUpdateEvent) => void;
