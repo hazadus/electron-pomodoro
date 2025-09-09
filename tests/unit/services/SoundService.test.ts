@@ -10,7 +10,10 @@ vi.mock('fs/promises', async () => {
 });
 
 vi.mock('child_process', () => ({
-  execSync: vi.fn().mockReturnValue(''),
+  execSync: vi.fn().mockImplementation(() => {
+    // Mock successful command execution (doesn't throw)
+    return '';
+  }),
 }));
 
 vi.mock('play-sound', () => ({
