@@ -28,6 +28,25 @@ vi.mock("electron-log", () => ({
     error: vi.fn(),
     warn: vi.fn(),
     debug: vi.fn(),
+    create: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      transports: {
+        file: {
+          level: "info",
+          maxSize: 5242880,
+          format: "",
+          fileName: "",
+          resolvePathFn: vi.fn(),
+        },
+        console: {
+          level: "debug",
+          format: "",
+        },
+      },
+    })),
     scope: vi.fn(() => ({
       info: vi.fn(),
       error: vi.fn(),

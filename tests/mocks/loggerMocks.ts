@@ -45,7 +45,24 @@ vi.mock('../../src/utils/logger', () => ({
 
 // Мокирование electron-log
 vi.mock('electron-log', () => ({
-  default: mockLogger,
+  default: {
+    ...mockLogger,
+    create: vi.fn(() => mockLogger),
+    scope: vi.fn(() => mockLogger),
+    transports: {
+      file: {
+        level: 'info',
+        maxSize: 5242880,
+        format: '',
+        fileName: '',
+        resolvePathFn: vi.fn(),
+      },
+      console: {
+        level: 'debug',
+        format: '',
+      },
+    },
+  },
   scope: vi.fn(() => mockLogger),
   transports: {
     file: {
