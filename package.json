@@ -6,7 +6,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/windows && cp src/windows/*.html dist/windows/ && mkdir -p dist/assets/icons && cp assets/icons/* dist/assets/icons/ && mkdir -p dist/assets/sounds && cp assets/sounds/* dist/assets/sounds/ && mkdir -p dist/assets/images && cp assets/images/* dist/assets/images/",
+    "copy-assets": "mkdir -p dist/windows && cp src/windows/*.html dist/windows/ && mkdir -p dist/assets/icons && cp assets/icons/*.png dist/assets/icons/ && cp assets/icons/*.icns dist/assets/icons/ && mkdir -p dist/assets/sounds && cp assets/sounds/* dist/assets/sounds/ && mkdir -p dist/assets/images && cp assets/images/* dist/assets/images/",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron . --dev",
@@ -64,7 +64,9 @@
   },
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "icon": "./assets/icons/pomodoro.icns"
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-zip",

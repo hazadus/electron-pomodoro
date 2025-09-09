@@ -75,6 +75,9 @@ export const ASSETS_PATHS = {
     SHORT_BREAK: "assets/icons/break.png",
     LONG_BREAK: "assets/icons/longbreak.png",
   },
+  IMAGES: {
+    POMODORO: "assets/images/pomodoro.png",
+  },
   SOUNDS: {
     NOTIFICATION: "assets/sounds/notification.m4a",
   },

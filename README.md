@@ -19,6 +19,7 @@
 ## Документация
 
 - [preload скрипт](./docs/preload.md)
+- [Создание иконок для macOS из PNG файла](./docs/macicons.md)
 
 ## Ссылки
 

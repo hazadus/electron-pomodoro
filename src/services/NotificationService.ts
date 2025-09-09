@@ -112,7 +112,11 @@ export class NotificationService {
           const actions = this.getActionsForTimerType(timerType);
 
           // Путь к иконке приложения (относительно dist/)
-          const iconPath = path.join(__dirname, "..", ASSETS_PATHS.ICONS.MAIN);
+          const iconPath = path.join(
+            __dirname,
+            "..",
+            ASSETS_PATHS.IMAGES.POMODORO
+          );
           const iconExists = fs.existsSync(iconPath);
           this.logger.info("Notification icon path", { iconPath, iconExists });
 
