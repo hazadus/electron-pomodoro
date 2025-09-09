@@ -324,6 +324,11 @@ function setupSettingsIPC(): void {
 
         await settingsService.updateSettings(updates);
 
+        // Обновляем меню трея с новыми настройками
+        if (trayManager) {
+          trayManager.refreshMenu();
+        }
+
         // Отправляем обновление всем окнам
         const updatedSettings = settingsService.getSettings();
         if (settingsWindow) {
@@ -345,6 +350,11 @@ function setupSettingsIPC(): void {
   ipcMain.handle("settings:reset", async () => {
     try {
       await settingsService.resetToDefaults();
+
+      // Обновляем меню трея с новыми настройками
+      if (trayManager) {
+        trayManager.refreshMenu();
+      }
 
       // Отправляем обновление всем окнам
       const updatedSettings = settingsService.getSettings();

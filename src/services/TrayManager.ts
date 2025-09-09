@@ -3,12 +3,12 @@ import * as path from "path";
 import { Timer, TimerType } from "../types/timer";
 import {
   ASSETS_PATHS,
-  DEFAULT_TIMER_DURATIONS,
   TRAY_MENU_LABELS,
   UPDATE_INTERVALS,
 } from "../utils/constants";
 import { trayLogger } from "../utils/logger";
 import { TimeFormatter } from "../utils/timeFormatter";
+import { settingsService } from "./SettingsService";
 
 export interface TrayManagerCallbacks {
   onStartTimer?: (type: TimerType) => void;
@@ -61,6 +61,14 @@ export class TrayManager {
     this.currentTimer = timer;
     this.buildContextMenu();
     this.updateTrayDisplay();
+  }
+
+  /**
+   * Обновляет меню трея (например, при изменении настроек)
+   */
+  refreshMenu(): void {
+    trayLogger.debug("Refreshing tray menu due to settings change");
+    this.buildContextMenu();
   }
 
   private updateTrayDisplay(): void {
@@ -121,6 +129,9 @@ export class TrayManager {
   private buildContextMenu(): void {
     if (!this.tray) return;
 
+    // Получаем актуальные настройки
+    const settings = settingsService.getSettings();
+
     const isTimerActive =
       this.currentTimer && this.currentTimer.state === "running";
     let menuTemplate: MenuItemConstructorOptions[] = [];
@@ -153,15 +164,15 @@ export class TrayManager {
     } else {
       menuTemplate = [
         {
-          label: `Запустить работу (${DEFAULT_TIMER_DURATIONS.WORK} мин)`,
+          label: `Запустить работу (${settings.workDuration} мин)`,
           click: () => this.callbacks.onStartTimer?.("work"),
         },
         {
-          label: `Запустить короткий перерыв (${DEFAULT_TIMER_DURATIONS.SHORT_BREAK} мин)`,
+          label: `Запустить короткий перерыв (${settings.shortBreakDuration} мин)`,
           click: () => this.callbacks.onStartTimer?.("shortBreak"),
         },
         {
-          label: `Запустить длинный перерыв (${DEFAULT_TIMER_DURATIONS.LONG_BREAK} мин)`,
+          label: `Запустить длинный перерыв (${settings.longBreakDuration} мин)`,
           click: () => this.callbacks.onStartTimer?.("longBreak"),
         },
         { type: "separator" },
