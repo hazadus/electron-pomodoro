@@ -159,6 +159,26 @@ function createTimerService(): void {
         `Timer completed: ${type}, duration: ${actualDuration} minutes`
       );
 
+      // Обновляем статистику
+      try {
+        statsService.incrementSession(type);
+
+        // Добавляем время в зависимости от типа сессии
+        if (type === "work") {
+          statsService.addTime("work", actualDuration);
+        } else {
+          // Для коротких и длинных перерывов добавляем время отдыха
+          statsService.addTime("break", actualDuration);
+        }
+
+        logger.info("Statistics updated successfully", {
+          type,
+          actualDuration,
+        });
+      } catch (error) {
+        logger.error("Failed to update statistics:", error);
+      }
+
       // Обновляем трей после завершения таймера
       if (trayManager) {
         trayManager.updateTimer(null);

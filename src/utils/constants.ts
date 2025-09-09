@@ -70,7 +70,7 @@ export const NOTIFICATION_MESSAGES = {
 // Пути к ресурсам
 export const ASSETS_PATHS = {
   ICONS: {
-    MAIN: "assets/icons/icon.png",
+    MAIN: "assets/icons/icon_white.png",
     WORK: "assets/icons/work.png",
     SHORT_BREAK: "assets/icons/break.png",
     LONG_BREAK: "assets/icons/longbreak.png",
