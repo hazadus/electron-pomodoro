@@ -11,3 +11,7 @@ check:
     npm run lint
     npm run test:unit
     npm run build
+
+# Очистить все логи
+logs-clear:
+    rm -f ~/Library/Application\ Support/Pomodoro\ Timer/logs/*.log

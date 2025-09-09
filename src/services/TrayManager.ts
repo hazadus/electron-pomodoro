@@ -1,4 +1,10 @@
-import { Menu, MenuItemConstructorOptions, nativeImage, Tray } from "electron";
+import {
+  app,
+  Menu,
+  MenuItemConstructorOptions,
+  nativeImage,
+  Tray,
+} from "electron";
 import * as path from "path";
 import { Timer, TimerType } from "../types/timer";
 import {
@@ -31,8 +37,8 @@ export class TrayManager {
 
   initialize(): void {
     try {
-      // Путь к иконке относительно корня проекта
-      const iconPath = path.join(process.cwd(), ASSETS_PATHS.ICONS.MAIN);
+      // Путь к иконке относительно директории приложения
+      const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
       const icon = nativeImage.createFromPath(iconPath);
 
       if (icon.isEmpty()) {
@@ -65,7 +71,7 @@ export class TrayManager {
 
     if (visible) {
       // Показываем обычную иконку
-      const iconPath = path.join(process.cwd(), ASSETS_PATHS.ICONS.MAIN);
+      const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
       const icon = nativeImage.createFromPath(iconPath);
       this.tray.setImage(icon);
     } else {
