@@ -1,7 +1,7 @@
 {
   "name": "electron-pomodoro",
   "productName": "Pomodoro Timer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Простое приложение-таймер помидора с системными уведомлениями",
   "main": "dist/main.js",
   "scripts": {
