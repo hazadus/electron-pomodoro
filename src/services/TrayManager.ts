@@ -57,6 +57,24 @@ export class TrayManager {
     }
   }
 
+  /**
+   * Устанавливает видимость иконки трея
+   */
+  private setTrayIcon(visible: boolean): void {
+    if (!this.tray) return;
+
+    if (visible) {
+      // Показываем обычную иконку
+      const iconPath = path.join(process.cwd(), ASSETS_PATHS.ICONS.MAIN);
+      const icon = nativeImage.createFromPath(iconPath);
+      this.tray.setImage(icon);
+    } else {
+      // Скрываем иконку, используя пустое изображение
+      const emptyIcon = nativeImage.createEmpty();
+      this.tray.setImage(emptyIcon);
+    }
+  }
+
   updateTimer(timer: Timer | null): void {
     this.currentTimer = timer;
     this.buildContextMenu();
@@ -75,6 +93,9 @@ export class TrayManager {
     if (!this.tray) return;
 
     if (this.currentTimer && this.currentTimer.state === "running") {
+      // Скрываем иконку при активном таймере
+      this.setTrayIcon(false);
+
       const title = TimeFormatter.formatTrayTitle(
         this.currentTimer.remainingTime,
         this.currentTimer.type
@@ -85,6 +106,9 @@ export class TrayManager {
         this.startUpdateInterval();
       }
     } else {
+      // Показываем иконку когда таймер не активен
+      this.setTrayIcon(true);
+
       // Убираем title на macOS когда таймер не активен, показываем только tooltip
       if (process.platform === "darwin") {
         this.tray?.setTitle("");
