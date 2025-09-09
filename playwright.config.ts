@@ -19,5 +19,10 @@ export default defineConfig({
       name: 'electron',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'integration',
+      testDir: './tests/integration',
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
 });
