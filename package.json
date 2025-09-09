@@ -12,6 +12,7 @@
     "dev": "npm run build && electron . --dev",
     "package": "electron-forge package",
     "make": "electron-forge make",
+    "publish": "electron-forge publish",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.{ts,html,css,json}",
@@ -41,6 +42,7 @@
     "@electron-forge/maker-rpm": "^7.8.3",
     "@electron-forge/maker-squirrel": "^7.8.3",
     "@electron-forge/maker-zip": "^7.8.3",
+    "@electron-forge/publisher-github": "^7.8.3",
     "@eslint/js": "^9.35.0",
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.3.0",
@@ -65,7 +67,8 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "./assets/icons/pomodoro.icns"
+        "icon": "./assets/icons/icon",
+        "name": "Pomodoro Timer"
       },
       "makers": [
         {
@@ -73,6 +76,43 @@
           "platforms": [
             "darwin"
           ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {
+            "options": {
+              "maintainer": "Alexander Goldovsky",
+              "homepage": "https://github.com/hazadus/electron-pomodoro"
+            }
+          }
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {
+            "options": {
+              "maintainer": "Alexander Goldovsky",
+              "homepage": "https://github.com/hazadus/electron-pomodoro"
+            }
+          }
+        },
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "electron-pomodoro"
+          }
+        }
+      ],
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-github",
+          "config": {
+            "repository": {
+              "owner": "hazadus",
+              "name": "electron-pomodoro"
+            },
+            "prerelease": false,
+            "draft": true
+          }
         }
       ]
     }
