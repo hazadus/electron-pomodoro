@@ -1,11 +1,12 @@
 {
   "name": "electron-pomodoro",
+  "productName": "Pomodoro Timer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Простое приложение-таймер помидора с системными уведомлениями",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/windows && cp src/windows/*.html dist/windows/",
+    "copy-assets": "mkdir -p dist/windows && cp src/windows/*.html dist/windows/ && mkdir -p dist/assets/icons && cp assets/icons/* dist/assets/icons/ && mkdir -p dist/assets/sounds && cp assets/sounds/* dist/assets/sounds/",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron . --dev",
@@ -26,8 +27,13 @@
     "test:unit": "vitest run tests/unit",
     "test:ci": "npm run test:coverage && npm run test:e2e"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "pomodoro",
+    "timer",
+    "productivity",
+    "electron"
+  ],
+  "author": "Alexander Goldovsky",
   "license": "ISC",
   "devDependencies": {
     "@electron-forge/cli": "^7.8.3",

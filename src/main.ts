@@ -17,6 +17,9 @@ import { createLogger } from "./utils/logger";
 
 const logger = createLogger("main");
 
+// Устанавливаем название приложения для системных уведомлений
+app.setName("Pomodoro Timer");
+
 let trayManager: TrayManager | null = null;
 let timerService: TimerService | null = null;
 let notificationService: NotificationService | null = null;

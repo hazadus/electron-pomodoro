@@ -1,4 +1,6 @@
-import { Menu, MenuItem, Tray } from "electron";
+import { Menu, MenuItem, Notification, Tray } from "electron";
+import * as fs from "fs";
+import * as path from "path";
 import {
   NOTIFICATION_ACTIONS,
   NotificationActionType,
@@ -8,6 +10,7 @@ import {
   TIMER_EMOJIS,
   TimerType,
 } from "../types/timer";
+import { ASSETS_PATHS } from "../utils/constants";
 import { createLogger } from "../utils/logger";
 
 export interface NotificationHandler {
@@ -66,16 +69,8 @@ export class NotificationService {
       const message = this.getTimerMessage(timerType);
       this.tray.setToolTip(`${emoji} ${message}`);
 
-      // Показываем balloon уведомление (Windows) или обычное (macOS/Linux)
-      if (process.platform === "win32") {
-        this.tray.displayBalloon({
-          title: `${emoji} Pomodoro Timer`,
-          content: message,
-          icon: undefined, // Используется иконка трея
-          iconType: "info",
-          respectQuietTime: false,
-        });
-      }
+      // Показываем системное уведомление
+      await this.showSystemNotification(emoji, message, timerType);
 
       this.logger.info("Interactive notification shown via tray", {
         timerType,
@@ -89,6 +84,108 @@ export class NotificationService {
       this.logger.error("Failed to show interactive notification", {
         error: error instanceof Error ? error.message : String(error),
         timerType,
+      });
+    }
+  }
+
+  /**
+   * Показывает системное уведомление для всех платформ
+   */
+  private async showSystemNotification(
+    emoji: string,
+    message: string,
+    timerType: TimerType
+  ): Promise<void> {
+    try {
+      if (process.platform === "win32") {
+        // Windows - используем balloon уведомления трея
+        this.tray.displayBalloon({
+          title: `${emoji} Pomodoro Timer`,
+          content: message,
+          icon: undefined, // Используется иконка трея
+          iconType: "info",
+          respectQuietTime: false,
+        });
+      } else {
+        // macOS и Linux - используем системные уведомления
+        if (Notification.isSupported()) {
+          const actions = this.getActionsForTimerType(timerType);
+
+          // Путь к иконке приложения (относительно dist/)
+          const iconPath = path.join(__dirname, "..", ASSETS_PATHS.ICONS.MAIN);
+          const iconExists = fs.existsSync(iconPath);
+          this.logger.info("Notification icon path", { iconPath, iconExists });
+
+          const notification = new Notification({
+            title: `${emoji} Pomodoro Timer`,
+            body: message,
+            icon: iconPath,
+            silent: false,
+            urgency: "normal",
+            actions: actions.map((action) => ({
+              type: "button",
+              text: action.text,
+            })),
+          });
+
+          // Обработка кликов по уведомлению
+          notification.on("click", () => {
+            this.logger.info("System notification clicked");
+            // Показываем меню трея при клике на уведомление
+            if (this.tray) {
+              this.tray.popUpContextMenu();
+            }
+          });
+
+          // Обработка кликов по кнопкам действий
+          notification.on("action", (_event, index) => {
+            if (
+              typeof index === "number" &&
+              index >= 0 &&
+              index < actions.length
+            ) {
+              // eslint-disable-next-line security/detect-object-injection
+              const action = actions[index];
+              this.logger.info("System notification action clicked", {
+                action: action.type,
+                index,
+              });
+              this.handleNotificationAction(action.type);
+            } else {
+              this.logger.warn("Invalid action index received", { index });
+            }
+          });
+
+          // Обработка ошибок уведомления
+          notification.on("failed", (error) => {
+            this.logger.error("System notification failed", {
+              error: error instanceof Error ? error.message : "Unknown error",
+            });
+          });
+
+          // Показываем уведомление
+          notification.show();
+
+          this.logger.info("System notification shown", {
+            platform: process.platform,
+            hasActions: actions.length > 0,
+          });
+        } else {
+          this.logger.warn(
+            "System notifications not supported on this platform",
+            {
+              platform: process.platform,
+            }
+          );
+
+          // Fallback - мигаем иконкой трея
+          this.flashTrayIcon();
+        }
+      }
+    } catch (error) {
+      this.logger.error("Failed to show system notification", {
+        error: error instanceof Error ? error.message : String(error),
+        platform: process.platform,
       });
     }
   }
@@ -237,10 +334,61 @@ export class NotificationService {
   }
 
   /**
-   * Проверяет доступность balloon уведомлений (Windows)
+   * Проверяет доступность системных уведомлений
+   */
+  public isNotificationSupported(): boolean {
+    if (process.platform === "win32") {
+      return true; // Balloon уведомления всегда доступны в Windows
+    }
+    return Notification.isSupported();
+  }
+
+  /**
+   * Проверяет доступность balloon уведомлений (Windows) - устаревший метод
+   * @deprecated Используйте isNotificationSupported()
    */
   public isBalloonSupported(): boolean {
     return process.platform === "win32";
+  }
+
+  /**
+   * Мигает иконкой трея как fallback уведомление
+   */
+  private flashTrayIcon(): void {
+    try {
+      if (!this.tray) return;
+
+      let flashCount = 0;
+      const maxFlashes = 6; // 3 полных цикла мигания
+      const flashInterval = 300;
+
+      // Сохраняем текущее состояние трея для восстановления
+
+      const flashTimer = setInterval(() => {
+        if (flashCount >= maxFlashes) {
+          clearInterval(flashTimer);
+          this.logger.debug("Tray icon flash completed");
+          return;
+        }
+
+        // Альтернируем между обычной иконкой и временным скрытием/показом tooltip
+        if (flashCount % 2 === 0) {
+          this.tray.setToolTip(
+            "🍅 Время вышло! Кликните правой кнопкой для действий"
+          );
+        } else {
+          this.tray.setToolTip("Pomodoro Timer");
+        }
+
+        flashCount++;
+      }, flashInterval);
+
+      this.logger.info("Tray icon flashing as notification fallback");
+    } catch (error) {
+      this.logger.error("Failed to flash tray icon", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   /**
