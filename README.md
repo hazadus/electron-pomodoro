@@ -1,4 +1,4 @@
-# 🍅 `electron-learn`
+# 🍅 `electron-pomodoro`
 
 Простое приложение на Electron для изучения фреймворка - таймера помидора. Показывает значок в трее с выпадающим меню.
 
@@ -49,16 +49,17 @@ npm run publish
 ### Поддерживаемые платформы
 
 - **🐧 Linux**: `.deb` и `.rpm` пакеты
-- **🍎 macOS**: `.zip` архив 
+- **🍎 macOS**: `.zip` архив
 - **🪟 Windows**: `.exe` установщик (Squirrel)
 
 ### Процесс релиза
 
 1. **Автоматический релиз** (рекомендуется):
+
    ```bash
    # Обновить версию и создать тег
    npm version patch|minor|major
-   
+
    # Отправить изменения и теги
    git push && git push --tags
    ```
@@ -79,6 +80,7 @@ npm run publish
 ### Конфигурация GitHub Actions
 
 Workflow файл: `.github/workflows/release.yml`
+
 - Сборка на Ubuntu, macOS и Windows
 - Автоматические тесты и проверки
 - Загрузка артефактов в GitHub Releases
@@ -222,9 +224,9 @@ npm run test:run
 
 Логи сохраняются в директории `logs/` внутри папки данных приложения:
 
-- **macOS**: `~/Library/Application Support/electron-learn/logs/`
-- **Windows**: `%APPDATA%/electron-learn/logs/`
-- **Linux**: `~/.config/electron-learn/logs/`
+- **macOS**: `~/Library/Application Support/Pomodoro Timer/logs/`
+- **Windows**: `%APPDATA%/Pomodoro Timer/logs/`
+- **Linux**: `~/.config/Pomodoro Timer/logs/`
 
 ### Типы логов
 
