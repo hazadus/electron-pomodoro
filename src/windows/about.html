@@ -38,15 +38,14 @@
       }
 
       .icon {
-        width: 64px;
-        height: 64px;
+        width: 80px;
+        height: 80px;
         margin: 0 auto 20px;
         background: rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
+        border-radius: 20px;
+        display: block;
+        padding: 4px;
+        box-sizing: border-box;
       }
 
       p {
@@ -86,7 +85,11 @@
   </head>
   <body>
     <div class="container">
-      <div class="icon">🍅</div>
+      <img
+        src="../assets/images/pomodoro.png"
+        class="icon"
+        alt="Pomodoro Timer"
+      />
       <h1>Pomodoro Timer</h1>
       <p>Простое приложение-таймер в системном трее</p>
       <p>Создано с помощью Electron и TypeScript</p>
