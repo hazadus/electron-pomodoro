@@ -1,13 +1,11 @@
-cloc|github.com/AlDanial/cloc v 2.02  T=5.55 s (7.6 files/s, 1158.3 lines/s)
+cloc|github.com/AlDanial/cloc v 2.02  T=6.20 s (7.6 files/s, 1378.5 lines/s)
 --- | ---
 
 Language|files|blank|comment|code
 :-------|-------:|-------:|-------:|-------:
-TypeScript|25|668|484|3187
-Markdown|6|351|0|1417
-JSON|7|0|0|159
-HTML|1|8|0|91
-JavaScript|1|1|0|48
-Bourne Shell|2|3|1|7
+TypeScript|37|1087|701|5374
+HTML|3|111|3|831
+Markdown|1|79|0|197
+JSON|6|0|0|160
 --------|--------|--------|--------|--------
-SUM:|42|1031|485|4909
+SUM:|47|1277|704|6562

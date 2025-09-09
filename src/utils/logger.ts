@@ -54,57 +54,41 @@ function initializeMainLogger() {
  * Создание специализированного логгера для определенной области
  */
 export function createLogger(scope: string) {
-  const logger = log.scope(scope);
+  // Создаем отдельный экземпляр логгера вместо использования scope
+  const logger = log.create({ logId: scope });
 
-  // Настройка файлового транспорта для каждого скоупа
-  if (scope !== "main") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const loggerAny = logger as any;
+  // Настройка файлового транспорта для каждого логгера
+  logger.transports.file.level = isDev
+    ? LOGGING_CONFIG.LOG_LEVELS.DEVELOPMENT
+    : LOGGING_CONFIG.LOG_LEVELS.PRODUCTION;
+  logger.transports.file.maxSize = LOGGING_CONFIG.MAX_FILE_SIZE;
+  logger.transports.file.format =
+    "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] [{scope}] {text}";
+  logger.transports.file.fileName = `${scope}.log`;
 
-    // Проверяем существование transports и file
-    if (loggerAny.transports && loggerAny.transports.file) {
-      loggerAny.transports.file.fileName = `${scope}.log`;
-      loggerAny.transports.file.resolvePathFn = () => {
-        try {
-          if (app.isReady()) {
-            return path.join(
-              app.getPath("userData"),
-              DATA_FILES.LOGS_DIR,
-              `${scope}.log`
-            );
-          } else {
-            // Используем временный путь в директории проекта, если приложение еще не готово
-            return path.join(process.cwd(), "temp-logs", `${scope}.log`);
-          }
-        } catch (_error) {
-          // Fallback на локальную директорию
-          return path.join(process.cwd(), "temp-logs", `${scope}.log`);
-        }
-      };
+  // Настройка пути к файлу логов
+  logger.transports.file.resolvePathFn = () => {
+    try {
+      if (app.isReady()) {
+        return path.join(
+          app.getPath("userData"),
+          DATA_FILES.LOGS_DIR,
+          `${scope}.log`
+        );
+      } else {
+        // Используем временный путь в директории проекта, если приложение еще не готово
+        return path.join(process.cwd(), "temp-logs", `${scope}.log`);
+      }
+    } catch (_error) {
+      // Fallback на локальную директорию
+      return path.join(process.cwd(), "temp-logs", `${scope}.log`);
     }
-  }
+  };
 
-  // Применяем общие настройки
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const loggerAny = logger as any;
-
-  // Проверяем существование transports
-  if (loggerAny.transports) {
-    if (loggerAny.transports.file) {
-      loggerAny.transports.file.level = isDev
-        ? LOGGING_CONFIG.LOG_LEVELS.DEVELOPMENT
-        : LOGGING_CONFIG.LOG_LEVELS.PRODUCTION;
-      loggerAny.transports.file.maxSize = LOGGING_CONFIG.MAX_FILE_SIZE;
-      loggerAny.transports.file.format =
-        "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] [{scope}] {text}";
-    }
-
-    if (loggerAny.transports.console) {
-      loggerAny.transports.console.level = isDev ? "debug" : false;
-      loggerAny.transports.console.format =
-        "{h}:{i}:{s}.{ms} › [{level}] [{scope}] {text}";
-    }
-  }
+  // Настройка консольного транспорта
+  logger.transports.console.level = isDev ? "debug" : false;
+  logger.transports.console.format =
+    "{h}:{i}:{s}.{ms} › [{level}] [{scope}] {text}";
 
   return logger;
 }
