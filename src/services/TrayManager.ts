@@ -16,7 +16,7 @@ export interface TrayManagerCallbacks {
   onShowSettings?: () => void;
   onShowStats?: () => void;
   onShowAbout?: () => void;
-  onQuit?: () => void;
+  onQuit?: () => void | Promise<void>;
 }
 
 export class TrayManager {

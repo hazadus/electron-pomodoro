@@ -270,6 +270,67 @@ class NotificationHandlerImpl implements NotificationHandler {
   }
 }
 
+// Функция проверки активного таймера перед выходом
+async function checkActiveTimerBeforeQuit(): Promise<boolean> {
+  if (!timerService) {
+    return true; // Если нет сервиса таймера, разрешаем выход
+  }
+
+  const currentTimer = timerService.getCurrentTimer();
+  const isTimerActive = timerService.isRunning() || timerService.isPaused();
+
+  if (!isTimerActive || !currentTimer) {
+    return true; // Если таймер неактивен, разрешаем выход
+  }
+
+  try {
+    const timerTypeText =
+      currentTimer.type === "work"
+        ? "работы"
+        : currentTimer.type === "shortBreak"
+          ? "короткого перерыва"
+          : "длинного перерыва";
+
+    const remainingTimeText = TimerService.formatTime(
+      currentTimer.remainingTime
+    );
+    const stateText =
+      currentTimer.state === "paused" ? "приостановлен" : "активен";
+
+    const result = await dialog.showMessageBox({
+      type: "warning",
+      title: "Активный таймер",
+      message: `Таймер ${timerTypeText} ${stateText}`,
+      detail: `Оставшееся время: ${remainingTimeText}\n\nВы действительно хотите остановить таймер и выйти из приложения?`,
+      buttons: ["Отмена", "Остановить таймер и выйти"],
+      defaultId: 0,
+      cancelId: 0,
+      noLink: true,
+    });
+
+    if (result.response === 1) {
+      // Пользователь выбрал "Остановить таймер и выйти"
+      timerService.stopTimer();
+      logger.info("Timer stopped before application quit", {
+        type: currentTimer.type,
+        remainingTime: currentTimer.remainingTime,
+      });
+      return true;
+    } else {
+      // Пользователь выбрал "Отмена"
+      logger.info("Application quit cancelled due to active timer", {
+        type: currentTimer.type,
+        remainingTime: currentTimer.remainingTime,
+      });
+      return false;
+    }
+  } catch (error) {
+    logger.error("Error showing quit confirmation dialog:", error);
+    // В случае ошибки разрешаем выход
+    return true;
+  }
+}
+
 // Функция создания системного трея
 function createTrayManager(): void {
   const callbacks: TrayManagerCallbacks = {
@@ -311,8 +372,11 @@ function createTrayManager(): void {
     onShowAbout: () => {
       createAboutWindow();
     },
-    onQuit: () => {
-      app.quit();
+    onQuit: async () => {
+      const canQuit = await checkActiveTimerBeforeQuit();
+      if (canQuit) {
+        app.quit();
+      }
     },
   };
 
