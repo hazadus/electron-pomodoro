@@ -1,12 +1,12 @@
 {
   "name": "electron-pomodoro",
   "productName": "Pomodoro Timer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Простое приложение-таймер помидора с системными уведомлениями",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/windows && cp src/windows/*.html dist/windows/ && mkdir -p dist/assets/icons && cp assets/icons/*.png dist/assets/icons/ && cp assets/icons/*.icns dist/assets/icons/ && mkdir -p dist/assets/sounds && cp assets/sounds/* dist/assets/sounds/ && mkdir -p dist/assets/images && cp assets/images/* dist/assets/images/",
+    "copy-assets": "node scripts/copy-assets.js",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron . --dev",
