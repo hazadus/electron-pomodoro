@@ -101,7 +101,7 @@
       </p>
 
       <div class="version">
-        <strong>Версия 1.0.0</strong>
+        <strong id="appVersion">Версия ...</strong>
         <div class="tech-info" id="techInfo"></div>
       </div>
     </div>
@@ -109,9 +109,28 @@
     <script>
       // Используем безопасный API из preload
       if (window.electronAPI) {
+        console.log("electronAPI available:", window.electronAPI);
+
         const info = window.electronAPI.versions;
         document.getElementById("techInfo").innerHTML =
           `Electron ${info.electron} • Chrome ${info.chrome} • Node ${info.node}`;
+
+        // Получаем версию приложения асинхронно
+        window.electronAPI
+          .getAppVersion()
+          .then((version) => {
+            console.log("App version received:", version);
+            document.getElementById("appVersion").textContent =
+              `Версия ${version}`;
+          })
+          .catch((error) => {
+            console.error("Failed to get app version:", error);
+            document.getElementById("appVersion").textContent =
+              `Версия недоступна`;
+          });
+      } else {
+        console.error("electronAPI not available");
+        document.getElementById("appVersion").textContent = `Версия недоступна`;
       }
     </script>
   </body>

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import * as path from "path";
+import * as fs from "fs";
 import {
   NotificationHandler,
   NotificationService,
@@ -16,6 +17,17 @@ import { ASSETS_PATHS, WINDOW_CONFIG } from "./utils/constants";
 import { createLogger } from "./utils/logger";
 
 const logger = createLogger("main");
+
+// Читаем версию приложения из package.json
+let appVersion = "1.0.0"; // fallback версия
+try {
+  const packagePath = path.join(__dirname, "..", "package.json");
+  const packageData = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+  appVersion = packageData.version;
+  logger.info("App version loaded:", appVersion);
+} catch (error) {
+  logger.warn("Failed to read app version from package.json:", error);
+}
 
 // Устанавливаем название приложения для системных уведомлений
 app.setName("Pomodoro Timer");
@@ -434,6 +446,14 @@ function createTrayManager(): void {
   trayManager.initialize();
 }
 
+// Настройка IPC обработчиков для основных функций
+function setupMainIPC(): void {
+  // Получение версии приложения
+  ipcMain.handle("app:get-version", async () => {
+    return appVersion;
+  });
+}
+
 // Настройка IPC обработчиков для окна настроек
 function setupSettingsIPC(): void {
   // Получение текущих настроек
@@ -627,6 +647,7 @@ app.whenReady().then(async () => {
     await statsService.initialize();
 
     // Настраиваем IPC обработчики
+    setupMainIPC();
     setupSettingsIPC();
     setupStatsIPC();
 
@@ -640,6 +661,7 @@ app.whenReady().then(async () => {
   } catch (error) {
     logger.error("Failed to initialize application:", error);
     // Приложение может продолжить работу с настройками по умолчанию
+    setupMainIPC();
     setupSettingsIPC();
     setupStatsIPC();
     initializeServices();
