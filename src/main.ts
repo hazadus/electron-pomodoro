@@ -637,6 +637,37 @@ function initializeServices(): void {
   });
 }
 
+// Защита от запуска нескольких инстансов
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  logger.info("Another instance is already running, quitting...");
+  app.quit();
+} else {
+  // Обработчик попытки запуска второго инстанса
+  app.on("second-instance", (_event, commandLine, workingDirectory) => {
+    logger.info("Second instance attempted to start", {
+      commandLine,
+      workingDirectory,
+    });
+
+    // Показываем окно "О программе" если нет открытых окон
+    const allWindows = BrowserWindow.getAllWindows();
+    if (allWindows.length === 0) {
+      createAboutWindow();
+    } else {
+      // Фокусируемся на существующих окнах
+      allWindows.forEach((window) => {
+        if (window.isMinimized()) {
+          window.restore();
+        }
+        window.show();
+        window.focus();
+      });
+    }
+  });
+}
+
 // Когда приложение готово
 app.whenReady().then(async () => {
   try {
