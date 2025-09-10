@@ -235,37 +235,87 @@ class NotificationHandlerImpl implements NotificationHandler {
     logger.info("Notification action triggered:", { action });
 
     if (!timerService) {
-      logger.error("TimerService not available");
+      logger.error("TimerService not available for action:", { action });
       return;
     }
 
-    const settings = settingsService.getSettings();
+    try {
+      const settings = settingsService.getSettings();
 
-    switch (action) {
-      case "start-work":
-        timerService.startTimer({
-          type: "work",
-          duration: settings.workDuration,
+      // Проверяем, есть ли активный таймер и останавливаем его перед запуском нового
+      const currentTimer = timerService.getCurrentTimer();
+      if (
+        currentTimer &&
+        (timerService.isRunning() || timerService.isPaused())
+      ) {
+        logger.info("Stopping current timer before starting new one", {
+          currentType: currentTimer.type,
+          currentState: currentTimer.state,
+          newAction: action,
         });
-        break;
-      case "start-short-break":
-        timerService.startTimer({
-          type: "shortBreak",
-          duration: settings.shortBreakDuration,
-        });
-        break;
-      case "start-long-break":
-        timerService.startTimer({
-          type: "longBreak",
-          duration: settings.longBreakDuration,
-        });
-        break;
-      case "dismiss":
-        // Просто закрываем уведомление, никаких дополнительных действий
-        logger.info("Notification dismissed");
-        break;
-      default:
-        logger.warn("Unknown notification action:", { action });
+        timerService.stopTimer();
+      }
+
+      switch (action) {
+        case "start-work":
+          logger.info("Starting work timer from notification", {
+            duration: settings.workDuration,
+          });
+          timerService.startTimer({
+            type: "work",
+            duration: settings.workDuration,
+          });
+          break;
+        case "start-short-break":
+          logger.info("Starting short break timer from notification", {
+            duration: settings.shortBreakDuration,
+          });
+          timerService.startTimer({
+            type: "shortBreak",
+            duration: settings.shortBreakDuration,
+          });
+          break;
+        case "start-long-break":
+          logger.info("Starting long break timer from notification", {
+            duration: settings.longBreakDuration,
+          });
+          timerService.startTimer({
+            type: "longBreak",
+            duration: settings.longBreakDuration,
+          });
+          break;
+        case "dismiss":
+          logger.info("Notification dismissed - no timer action");
+          break;
+        default:
+          logger.warn("Unknown notification action received:", { action });
+          break;
+      }
+
+      // Проверяем, что таймер действительно запустился
+      if (action !== "dismiss") {
+        setTimeout(() => {
+          const newTimer = timerService?.getCurrentTimer();
+          if (!newTimer || newTimer.state !== "running") {
+            logger.error("Timer failed to start after notification action", {
+              action,
+              timerState: newTimer?.state || "null",
+              timerType: newTimer?.type || "null",
+            });
+          } else {
+            logger.info("Timer successfully started from notification", {
+              action,
+              timerType: newTimer.type,
+              timerDuration: newTimer.duration,
+            });
+          }
+        }, 100); // Небольшая задержка для проверки состояния
+      }
+    } catch (error) {
+      logger.error("Error handling notification action", {
+        action,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

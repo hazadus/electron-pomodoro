@@ -165,6 +165,22 @@ export class NotificationService {
             this.logger.error("System notification failed", {
               error: error instanceof Error ? error.message : "Unknown error",
             });
+            // Восстанавливаем меню при ошибке
+            this.restoreOriginalMenu();
+          });
+
+          // Обработка закрытия уведомления
+          notification.on("close", () => {
+            this.logger.debug("System notification closed by user");
+            // Восстанавливаем оригинальное меню при закрытии уведомления
+            this.restoreOriginalMenu();
+          });
+
+          // Обработка ответа на уведомление (если поддерживается)
+          notification.on("reply", (_event, reply) => {
+            this.logger.debug("System notification reply received", { reply });
+            // Восстанавливаем меню после ответа
+            this.restoreOriginalMenu();
           });
 
           // Показываем уведомление
@@ -301,7 +317,11 @@ export class NotificationService {
    * Обрабатывает действие уведомления
    */
   private handleNotificationAction(action: NotificationActionType): void {
-    this.logger.info("Processing notification action", { action });
+    this.logger.info("Processing notification action", {
+      action,
+      hasHandler: !!this.handler,
+      hasOriginalMenu: !!this.originalMenu,
+    });
 
     // Восстанавливаем оригинальное меню
     this.restoreOriginalMenu();
@@ -309,11 +329,16 @@ export class NotificationService {
     // Вызываем обработчик действия
     if (this.handler) {
       try {
+        this.logger.debug("Calling notification handler", { action });
         this.handler.onNotificationAction(action);
+        this.logger.debug("Notification handler completed successfully", {
+          action,
+        });
       } catch (error) {
         this.logger.error("Error in notification action handler", {
           action,
           error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
         });
       }
     } else {
