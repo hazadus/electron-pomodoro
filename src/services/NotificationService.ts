@@ -27,6 +27,7 @@ export class NotificationService {
   private handler?: NotificationHandler;
   private originalMenu?: Menu;
   private notificationTimeout?: NodeJS.Timeout;
+  private currentNotification?: Notification;
 
   constructor(tray: Tray) {
     this.tray = tray;
@@ -110,6 +111,11 @@ export class NotificationService {
         // macOS и Linux - используем системные уведомления
         if (Notification.isSupported()) {
           const actions = this.getActionsForTimerType(timerType);
+          this.logger.info("Creating system notification with actions", {
+            timerType,
+            actionsCount: actions.length,
+            actions: actions.map((a) => ({ type: a.type, text: a.text })),
+          });
 
           // Путь к иконке приложения (относительно dist/)
           const iconPath = path.join(
@@ -119,6 +125,14 @@ export class NotificationService {
           );
           const iconExists = fs.existsSync(iconPath);
           this.logger.info("Notification icon path", { iconPath, iconExists });
+
+          // Закрываем предыдущее уведомление если есть
+          if (this.currentNotification) {
+            this.logger.info(
+              "Closing previous notification before showing new one"
+            );
+            this.currentNotification.close();
+          }
 
           const notification = new Notification({
             title: `${emoji} Pomodoro Timer`,
@@ -132,6 +146,9 @@ export class NotificationService {
             })),
           });
 
+          // Сохраняем ссылку на текущее уведомление
+          this.currentNotification = notification;
+
           // Обработка кликов по уведомлению
           notification.on("click", () => {
             this.logger.info("System notification clicked");
@@ -143,6 +160,13 @@ export class NotificationService {
 
           // Обработка кликов по кнопкам действий
           notification.on("action", (_event, index) => {
+            this.logger.info("System notification action event received", {
+              index,
+              indexType: typeof index,
+              actionsLength: actions.length,
+              actions: actions.map((a) => a.type),
+            });
+
             if (
               typeof index === "number" &&
               index >= 0 &&
@@ -154,9 +178,17 @@ export class NotificationService {
                 action: action.type,
                 index,
               });
+              // Очищаем ссылку на текущее уведомление
+              if (this.currentNotification === notification) {
+                this.currentNotification = undefined;
+              }
               this.handleNotificationAction(action.type);
             } else {
-              this.logger.warn("Invalid action index received", { index });
+              this.logger.warn("Invalid action index received", {
+                index,
+                indexType: typeof index,
+                actionsLength: actions.length,
+              });
             }
           });
 
@@ -165,13 +197,24 @@ export class NotificationService {
             this.logger.error("System notification failed", {
               error: error instanceof Error ? error.message : "Unknown error",
             });
+            // Очищаем ссылку на текущее уведомление
+            if (this.currentNotification === notification) {
+              this.currentNotification = undefined;
+            }
             // Восстанавливаем меню при ошибке
             this.restoreOriginalMenu();
           });
 
           // Обработка закрытия уведомления
           notification.on("close", () => {
-            this.logger.debug("System notification closed by user");
+            this.logger.info("System notification closed by user", {
+              timerType,
+              platform: process.platform,
+            });
+            // Очищаем ссылку на текущее уведомление
+            if (this.currentNotification === notification) {
+              this.currentNotification = undefined;
+            }
             // Восстанавливаем оригинальное меню при закрытии уведомления
             this.restoreOriginalMenu();
           });
@@ -425,6 +468,12 @@ export class NotificationService {
    */
   public dismissNotification(): void {
     this.logger.info("Dismissing notification");
+    // Закрываем текущее уведомление если есть
+    if (this.currentNotification) {
+      this.logger.info("Force closing current notification");
+      this.currentNotification.close();
+      this.currentNotification = undefined;
+    }
     this.restoreOriginalMenu();
   }
 }
