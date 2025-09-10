@@ -1,6 +1,6 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
-import * as path from "path";
+import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron";
 import * as fs from "fs";
+import * as path from "path";
 import {
   NotificationHandler,
   NotificationService,
@@ -682,8 +682,16 @@ app.whenReady().then(async () => {
     setupSettingsIPC();
     setupStatsIPC();
 
-    // Скрываем иконку из дока на macOS
+    // Устанавливаем иконку приложения и скрываем из дока на macOS
     if (process.platform === "darwin" && app.dock) {
+      const iconPath = path.join(__dirname, "..", "assets/icons/pomodoro.icns");
+      if (fs.existsSync(iconPath)) {
+        const icon = nativeImage.createFromPath(iconPath);
+        app.dock.setIcon(icon);
+        logger.info("Custom app icon set for dock", { iconPath });
+      } else {
+        logger.warn("App icon file not found", { iconPath });
+      }
       app.dock.hide();
     }
 
