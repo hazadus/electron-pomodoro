@@ -67,7 +67,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "./assets/icons/icon",
+        "icon": "./assets/icons/pomodoro.icns",
         "name": "Pomodoro Timer",
         "executableName": "electron-pomodoro"
       },
