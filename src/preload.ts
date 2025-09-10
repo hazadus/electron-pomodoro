@@ -4,6 +4,8 @@ import { contextBridge, ipcRenderer } from "electron";
 contextBridge.exposeInMainWorld("electronAPI", {
   platform: process.platform,
   getAppVersion: () => ipcRenderer.invoke("app:get-version"),
+  openExternalLink: (url: string) =>
+    ipcRenderer.invoke("app:open-external", url),
   versions: {
     node: process.versions.node,
     chrome: process.versions.chrome,

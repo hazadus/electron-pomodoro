@@ -95,9 +95,9 @@
       <p>Создано с помощью Electron и TypeScript</p>
       <p>
         Автор: Hazadus
-        <a href="https://github.com/hazadus" target="_blank">GitHub</a>
-        <a href="https://t.me/hazadus" target="_blank">Telegram</a>
-        <a href="https://hazadus.ru" target="_blank">hazadus.ru</a>
+        <a href="https://github.com/hazadus" class="external-link">GitHub</a>
+        <a href="https://t.me/hazadus" class="external-link">Telegram</a>
+        <a href="https://hazadus.ru" class="external-link">hazadus.ru</a>
       </p>
 
       <div class="version">
@@ -128,6 +128,24 @@
             document.getElementById("appVersion").textContent =
               `Версия недоступна`;
           });
+
+        // Обработчик для внешних ссылок
+        document.addEventListener("click", (event) => {
+          if (event.target.classList.contains("external-link")) {
+            event.preventDefault();
+            const url = event.target.getAttribute("href");
+            if (url) {
+              window.electronAPI
+                .openExternalLink(url)
+                .then(() => {
+                  console.log("External link opened:", url);
+                })
+                .catch((error) => {
+                  console.error("Failed to open external link:", error);
+                });
+            }
+          }
+        });
       } else {
         console.error("electronAPI not available");
         document.getElementById("appVersion").textContent = `Версия недоступна`;

@@ -1,4 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  nativeImage,
+  shell,
+} from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import {
@@ -451,6 +458,18 @@ function setupMainIPC(): void {
   // Получение версии приложения
   ipcMain.handle("app:get-version", async () => {
     return appVersion;
+  });
+
+  // Открытие внешней ссылки в системном браузере
+  ipcMain.handle("app:open-external", async (_event, url: string) => {
+    try {
+      logger.info("Opening external URL:", url);
+      await shell.openExternal(url);
+      return true;
+    } catch (error) {
+      logger.error("Failed to open external URL:", error);
+      throw error;
+    }
   });
 }
 
