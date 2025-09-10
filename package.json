@@ -26,7 +26,8 @@
     "test:e2e": "playwright test",
     "test:integration": "playwright test tests/integration",
     "test:unit": "vitest run tests/unit",
-    "test:ci": "npm run test:coverage && npm run test:e2e"
+    "test:ci": "npm run test:coverage && npm run test:e2e",
+    "logs": "node scripts/watch-logs.js"
   },
   "keywords": [
     "pomodoro",
