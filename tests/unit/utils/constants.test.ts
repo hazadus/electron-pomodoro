@@ -78,7 +78,7 @@ describe('Constants', () => {
 
   describe('Assets Paths', () => {
     it('should have correct icon paths', () => {
-      expect(ASSETS_PATHS.ICONS.MAIN).toBe('assets/icons/icon_white.png');
+      expect(ASSETS_PATHS.ICONS.MAIN).toBe('assets/icons/icon-tray.png');
       expect(ASSETS_PATHS.ICONS.WORK).toBe('assets/icons/work.png');
       expect(ASSETS_PATHS.ICONS.SHORT_BREAK).toBe('assets/icons/break.png');
       expect(ASSETS_PATHS.ICONS.LONG_BREAK).toBe('assets/icons/longbreak.png');
