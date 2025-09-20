@@ -3,8 +3,10 @@ import {
   Menu,
   MenuItemConstructorOptions,
   nativeImage,
+  NativeImage,
   Tray,
 } from "electron";
+import * as fs from "fs";
 import * as path from "path";
 import { Timer, TimerType } from "../types/timer";
 import {
@@ -37,18 +39,12 @@ export class TrayManager {
 
   initialize(): void {
     try {
-      // Путь к иконке относительно директории приложения
-      const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
-      const icon = nativeImage.createFromPath(iconPath);
+      // Создаем иконку с поддержкой Retina
+      const icon = this.createTrayIcon();
 
       if (icon.isEmpty()) {
+        const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
         trayLogger.warn("Tray icon not found, using empty image", { iconPath });
-      }
-
-      // Включаем template режим для macOS для автоматической адаптации к теме
-      if (process.platform === "darwin") {
-        icon.setTemplateImage(true);
-        trayLogger.info("Template mode enabled for tray icon on macOS");
       }
 
       this.tray = new Tray(icon);
@@ -70,21 +66,45 @@ export class TrayManager {
   }
 
   /**
+   * Создает иконку для трея с поддержкой Retina дисплеев
+   */
+  private createTrayIcon(): NativeImage {
+    const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
+    const icon = nativeImage.createFromPath(iconPath);
+
+    // Проверяем существование Retina версии
+    const retinaPath = iconPath.replace(".png", "@2x.png");
+    if (fs.existsSync(retinaPath)) {
+      try {
+        icon.addRepresentation({
+          scaleFactor: 2.0,
+          buffer: fs.readFileSync(retinaPath),
+        });
+        trayLogger.debug("Added Retina representation for tray icon", {
+          retinaPath,
+        });
+      } catch (error) {
+        trayLogger.warn("Failed to add Retina representation:", error);
+      }
+    }
+
+    // Включаем template режим для macOS для автоматической адаптации к теме
+    if (process.platform === "darwin") {
+      icon.setTemplateImage(true);
+    }
+
+    return icon;
+  }
+
+  /**
    * Устанавливает видимость иконки трея
    */
   private setTrayIcon(visible: boolean): void {
     if (!this.tray) return;
 
     if (visible) {
-      // Показываем обычную иконку
-      const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
-      const icon = nativeImage.createFromPath(iconPath);
-
-      // Включаем template режим для macOS для автоматической адаптации к теме
-      if (process.platform === "darwin") {
-        icon.setTemplateImage(true);
-      }
-
+      // Показываем иконку с поддержкой Retina
+      const icon = this.createTrayIcon();
       this.tray.setImage(icon);
     } else {
       // Скрываем иконку, используя пустое изображение
