@@ -41,7 +41,10 @@ jobs:
       - name: Run tests
         run: npm run test:run || echo "Some tests failed, but continuing with build"
         continue-on-error: true
-        
+
+      - name: Inject build time
+        run: node scripts/inject-build-time.js
+
       - name: Build application
         run: npm run build
         
@@ -90,7 +93,10 @@ jobs:
           
       - name: Install dependencies
         run: npm ci
-        
+
+      - name: Inject build time
+        run: node scripts/inject-build-time.js
+
       - name: Build application
         run: npm run build
           

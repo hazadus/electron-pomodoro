@@ -6,3 +6,6 @@ coverage/
 playwright-report/
 test-results/
 temp-logs/
+
+# Build info (generated during CI/CD)
+buildinfo.json

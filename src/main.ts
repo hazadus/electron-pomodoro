@@ -25,15 +25,33 @@ import { createLogger } from "./utils/logger";
 
 const logger = createLogger("main");
 
-// Читаем версию приложения из package.json
-let appVersion = "1.0.0"; // fallback версия
+// Читаем информацию о версии и сборке
+let buildInfo = {
+  version: "1.0.0", // fallback версия
+  buildTime: null as string | null,
+  buildTimestamp: null as number | null,
+};
+
 try {
-  const packagePath = path.join(__dirname, "..", "package.json");
-  const packageData = JSON.parse(fs.readFileSync(packagePath, "utf8"));
-  appVersion = packageData.version;
-  logger.info("App version loaded:", appVersion);
+  // Сначала пытаемся прочитать buildinfo.json
+  const buildInfoPath = path.join(__dirname, "..", "buildinfo.json");
+  if (fs.existsSync(buildInfoPath)) {
+    const buildInfoData = JSON.parse(fs.readFileSync(buildInfoPath, "utf8"));
+    buildInfo = {
+      version: buildInfoData.version,
+      buildTime: buildInfoData.buildTime,
+      buildTimestamp: buildInfoData.buildTimestamp,
+    };
+    logger.info("Build info loaded:", buildInfo);
+  } else {
+    // Fallback к чтению только версии из package.json
+    const packagePath = path.join(__dirname, "..", "package.json");
+    const packageData = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+    buildInfo.version = packageData.version;
+    logger.info("App version loaded from package.json:", buildInfo.version);
+  }
 } catch (error) {
-  logger.warn("Failed to read app version from package.json:", error);
+  logger.warn("Failed to read build info:", error);
 }
 
 // Устанавливаем название приложения для системных уведомлений
@@ -455,9 +473,14 @@ function createTrayManager(): void {
 
 // Настройка IPC обработчиков для основных функций
 function setupMainIPC(): void {
-  // Получение версии приложения
+  // Получение информации о версии и сборке
   ipcMain.handle("app:get-version", async () => {
-    return appVersion;
+    return buildInfo.version;
+  });
+
+  // Получение полной информации о сборке
+  ipcMain.handle("app:get-build-info", async () => {
+    return buildInfo;
   });
 
   // Открытие внешней ссылки в системном браузере

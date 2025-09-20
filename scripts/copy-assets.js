@@ -61,4 +61,13 @@ copyFiles('assets/sounds', 'dist/assets/sounds');
 ensureDir('dist/assets/images');
 copyFiles('assets/images', 'dist/assets/images');
 
+// Copy buildinfo.json if it exists
+const buildInfoSrc = path.join(__dirname, '..', 'buildinfo.json');
+const buildInfoDest = path.join(__dirname, '..', 'dist', 'buildinfo.json');
+if (fs.existsSync(buildInfoSrc)) {
+  copyFile(buildInfoSrc, buildInfoDest);
+} else {
+  console.log('buildinfo.json not found, skipping...');
+}
+
 console.log('Asset copying completed successfully!');
