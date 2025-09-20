@@ -45,6 +45,12 @@ export class TrayManager {
         trayLogger.warn("Tray icon not found, using empty image", { iconPath });
       }
 
+      // Включаем template режим для macOS для автоматической адаптации к теме
+      if (process.platform === "darwin") {
+        icon.setTemplateImage(true);
+        trayLogger.info("Template mode enabled for tray icon on macOS");
+      }
+
       this.tray = new Tray(icon);
       this.tray.setToolTip("Pomodoro Timer");
       this.buildContextMenu();
@@ -73,6 +79,12 @@ export class TrayManager {
       // Показываем обычную иконку
       const iconPath = path.join(app.getAppPath(), ASSETS_PATHS.ICONS.MAIN);
       const icon = nativeImage.createFromPath(iconPath);
+
+      // Включаем template режим для macOS для автоматической адаптации к теме
+      if (process.platform === "darwin") {
+        icon.setTemplateImage(true);
+      }
+
       this.tray.setImage(icon);
     } else {
       // Скрываем иконку, используя пустое изображение
